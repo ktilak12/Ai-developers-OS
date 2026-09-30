@@ -149,9 +149,14 @@ def query_project_rag(question: str = Query(...), top_k: int = Query(4)):
 
 @app.post("/api/agents/planner/plan")
 def create_planner_plan(req: PlanRequest):
+    """
+    Generate structured implementation plan using RAG context retrieval and AST code intelligence.
+    Returns: goal, requirements, affected_files_detailed, structured_steps, risk_matrix, testing_requirements, and retrieved_context_summary.
+    """
     target_dir = req.directory_path or os.getcwd()
     agent = PlannerAgent(target_dir)
     return agent.generate_plan(req.task_request)
+
 
 # --- PHASE 6: CODE AGENT ENDPOINTS ---
 
