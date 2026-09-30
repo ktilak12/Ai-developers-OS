@@ -10,6 +10,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const isProjectsActive = pathname === "/dashboard" || pathname.startsWith("/projects");
   const isRepositoryActive = pathname.startsWith("/repository");
   const isIntelligenceActive = pathname.startsWith("/intelligence");
+  const isRagActive = pathname.startsWith("/rag");
 
   return (
     <div className="flex h-screen bg-neutral-950 text-neutral-50 overflow-hidden">
@@ -56,6 +57,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
             Code Intelligence
+          </Link>
+          <Link 
+            href="/rag" 
+            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              isRagActive 
+                ? "bg-cyan-600/10 text-cyan-400 font-semibold" 
+                : "text-neutral-400 hover:bg-neutral-800/50 hover:text-white"
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            Project RAG
           </Link>
           
           <p className="px-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 mt-6">System</p>
