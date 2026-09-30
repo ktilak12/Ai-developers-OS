@@ -8,6 +8,7 @@ from typing import Optional, List, Dict, Any
 from intelligence.indexing.code_indexer import CodeIndexer
 from intelligence.retrieval.symbol_search import SymbolSearchEngine
 from intelligence.retrieval.retriever import ProjectRAGPipeline
+from agents.planner.agent import PlannerAgent
 
 app = FastAPI(title="AI Developer OS API", version="0.1.0")
 
@@ -26,6 +27,10 @@ GLOBAL_CODE_INDEX: Dict[str, Any] = {}
 GLOBAL_RAG_PIPELINE: Optional[ProjectRAGPipeline] = None
 
 class IndexRequest(BaseModel):
+    directory_path: Optional[str] = None
+
+class PlanRequest(BaseModel):
+    task_request: str
     directory_path: Optional[str] = None
 
 async def make_github_request(endpoint: str, token: Optional[str] = None):
@@ -134,3 +139,11 @@ def query_project_rag(question: str = Query(...), top_k: int = Query(4)):
         GLOBAL_RAG_PIPELINE.build_index()
         
     return GLOBAL_RAG_PIPELINE.query(question, top_k=top_k)
+
+# --- PHASE 5: PLANNER AGENT ENDPOINTS ---
+
+@app.post("/api/agents/planner/plan")
+def create_planner_plan(req: PlanRequest):
+    target_dir = req.directory_path or os.getcwd()
+    agent = PlannerAgent(target_dir)
+    return agent.generate_plan(req.task_request)
