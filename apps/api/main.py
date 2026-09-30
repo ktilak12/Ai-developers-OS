@@ -3,7 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import httpx
 import os
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
+
+from intelligence.indexing.code_indexer import CodeIndexer
+from intelligence.retrieval.symbol_search import SymbolSearchEngine
 
 app = FastAPI(title="AI Developer OS API", version="0.1.0")
 
@@ -17,9 +20,11 @@ app.add_middleware(
 
 GITHUB_API_BASE = "https://api.github.com"
 
-class RepoRequest(BaseModel):
-    owner: str
-    repo: str
+# Global in-memory code index store
+GLOBAL_CODE_INDEX: Dict[str, Any] = {}
+
+class IndexRequest(BaseModel):
+    directory_path: Optional[str] = None
 
 async def make_github_request(endpoint: str, token: Optional[str] = None):
     headers = {
@@ -46,6 +51,8 @@ async def make_github_request(endpoint: str, token: Optional[str] = None):
 def read_root():
     return {"status": "ok", "service": "AI Developer OS Backend API"}
 
+# --- GITHUB INTEGRATION ENDPOINTS ---
+
 @app.get("/api/github/repo")
 async def get_repository_info(owner: str = Query(...), repo: str = Query(...), token: Optional[str] = None):
     return await make_github_request(f"repos/{owner}/{repo}", token)
@@ -70,3 +77,37 @@ async def get_pull_requests(owner: str = Query(...), repo: str = Query(...), tok
 async def get_repository_contents(owner: str = Query(...), repo: str = Query(...), path: str = Query(""), token: Optional[str] = None):
     endpoint = f"repos/{owner}/{repo}/contents/{path}" if path else f"repos/{owner}/{repo}/contents"
     return await make_github_request(endpoint, token)
+
+# --- PHASE 3: CODE INTELLIGENCE ENDPOINTS ---
+
+@app.post("/api/intelligence/index")
+def index_repository(req: IndexRequest):
+    global GLOBAL_CODE_INDEX
+    target_dir = req.directory_path or os.getcwd()
+    if not os.path.exists(target_dir):
+        raise HTTPException(status_code=400, detail=f"Directory {target_dir} does not exist.")
+    
+    indexer = CodeIndexer(target_dir)
+    GLOBAL_CODE_INDEX = indexer.scan_and_index()
+    return {
+        "status": "success",
+        "message": f"Successfully indexed {GLOBAL_CODE_INDEX['files_scanned']} files.",
+        "summary": {
+            "files_scanned": GLOBAL_CODE_INDEX["files_scanned"],
+            "functions_count": len(GLOBAL_CODE_INDEX["functions"]),
+            "classes_count": len(GLOBAL_CODE_INDEX["classes"]),
+            "components_count": len(GLOBAL_CODE_INDEX["components"]),
+            "routes_count": len(GLOBAL_CODE_INDEX["routes"]),
+        }
+    }
+
+@app.get("/api/intelligence/search")
+def search_code_intelligence(query: str = Query(...)):
+    global GLOBAL_CODE_INDEX
+    if not GLOBAL_CODE_INDEX:
+        # Auto-index current workspace if not indexed yet
+        indexer = CodeIndexer(os.getcwd())
+        GLOBAL_CODE_INDEX = indexer.scan_and_index()
+        
+    engine = SymbolSearchEngine(GLOBAL_CODE_INDEX)
+    return engine.search(query)
