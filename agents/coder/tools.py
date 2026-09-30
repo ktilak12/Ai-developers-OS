@@ -1,0 +1,63 @@
+import os
+import re
+import difflib
+from typing import Dict, Any, List
+
+class CoderTools:
+    """
+    Code Agent tools for reading, creating, editing, and diffing files safely.
+    """
+
+    def __init__(self, root_dir: str):
+        self.root_dir = root_dir
+
+    def read_file(self, rel_path: str) -> str:
+        full_path = os.path.join(self.root_dir, rel_path)
+        if not os.path.exists(full_path):
+            return f"Error: File {rel_path} does not exist."
+        try:
+            with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
+                return f.read()
+        except Exception as e:
+            return f"Error reading {rel_path}: {e}"
+
+    def write_file(self, rel_path: str, content: str) -> str:
+        full_path = os.path.join(self.root_dir, rel_path)
+        os.makedirs(os.path.dirname(full_path), exist_ok=True)
+        with open(full_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        return f"Successfully wrote to {rel_path}"
+
+    def search_code(self, query: str) -> List[Dict[str, Any]]:
+        matches = []
+        exclude_dirs = {"node_modules", ".next", ".git", "__pycache__", "venv", ".venv"}
+        for root, dirs, files in os.walk(self.root_dir):
+            dirs[:] = [d for d in dirs if d not in exclude_dirs]
+            for file in files:
+                if file.endswith((".py", ".ts", ".tsx", ".js", ".jsx", ".md", ".json")):
+                    full_path = os.path.join(root, file)
+                    rel_path = os.path.relpath(full_path, self.root_dir).replace("\\", "/")
+                    try:
+                        with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
+                            lines = f.readlines()
+                        for idx, line in enumerate(lines):
+                            if query.lower() in line.lower():
+                                matches.append({
+                                    "file": rel_path,
+                                    "line": idx + 1,
+                                    "content": line.strip()
+                                })
+                    except Exception:
+                        pass
+        return matches[:20]
+
+    def generate_diff(self, rel_path: str, old_content: str, new_content: str) -> str:
+        old_lines = old_content.splitlines(keepends=True)
+        new_lines = new_content.splitlines(keepends=True)
+        diff = difflib.unified_diff(
+            old_lines,
+            new_lines,
+            fromfile=f"a/{rel_path}",
+            tofile=f"b/{rel_path}"
+        )
+        return "".join(diff)
