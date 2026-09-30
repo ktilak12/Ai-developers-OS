@@ -9,6 +9,7 @@ from intelligence.indexing.code_indexer import CodeIndexer
 from intelligence.retrieval.symbol_search import SymbolSearchEngine
 from intelligence.retrieval.retriever import ProjectRAGPipeline
 from agents.planner.agent import PlannerAgent
+from agents.coder.agent import CoderAgent
 
 app = FastAPI(title="AI Developer OS API", version="0.1.0")
 
@@ -31,6 +32,10 @@ class IndexRequest(BaseModel):
 
 class PlanRequest(BaseModel):
     task_request: str
+    directory_path: Optional[str] = None
+
+class ModifyRequest(BaseModel):
+    plan: Dict[str, Any]
     directory_path: Optional[str] = None
 
 async def make_github_request(endpoint: str, token: Optional[str] = None):
@@ -147,3 +152,11 @@ def create_planner_plan(req: PlanRequest):
     target_dir = req.directory_path or os.getcwd()
     agent = PlannerAgent(target_dir)
     return agent.generate_plan(req.task_request)
+
+# --- PHASE 6: CODE AGENT ENDPOINTS ---
+
+@app.post("/api/agents/coder/modify")
+def execute_code_modification(req: ModifyRequest):
+    target_dir = req.directory_path or os.getcwd()
+    agent = CoderAgent(target_dir)
+    return agent.execute_modification(req.plan)
