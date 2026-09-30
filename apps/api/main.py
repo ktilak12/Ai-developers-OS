@@ -7,6 +7,7 @@ from typing import Optional, List, Dict, Any
 
 from intelligence.indexing.code_indexer import CodeIndexer
 from intelligence.retrieval.symbol_search import SymbolSearchEngine
+from intelligence.retrieval.retriever import ProjectRAGPipeline
 
 app = FastAPI(title="AI Developer OS API", version="0.1.0")
 
@@ -20,8 +21,9 @@ app.add_middleware(
 
 GITHUB_API_BASE = "https://api.github.com"
 
-# Global in-memory code index store
+# Global in-memory stores
 GLOBAL_CODE_INDEX: Dict[str, Any] = {}
+GLOBAL_RAG_PIPELINE: Optional[ProjectRAGPipeline] = None
 
 class IndexRequest(BaseModel):
     directory_path: Optional[str] = None
@@ -105,9 +107,30 @@ def index_repository(req: IndexRequest):
 def search_code_intelligence(query: str = Query(...)):
     global GLOBAL_CODE_INDEX
     if not GLOBAL_CODE_INDEX:
-        # Auto-index current workspace if not indexed yet
         indexer = CodeIndexer(os.getcwd())
         GLOBAL_CODE_INDEX = indexer.scan_and_index()
         
     engine = SymbolSearchEngine(GLOBAL_CODE_INDEX)
     return engine.search(query)
+
+# --- PHASE 4: PROJECT RAG ENDPOINTS ---
+
+@app.post("/api/rag/index")
+def index_project_rag(req: IndexRequest):
+    global GLOBAL_RAG_PIPELINE
+    target_dir = req.directory_path or os.getcwd()
+    GLOBAL_RAG_PIPELINE = ProjectRAGPipeline(target_dir)
+    total_chunks = GLOBAL_RAG_PIPELINE.build_index()
+    return {
+        "status": "success",
+        "message": f"Successfully chunked and indexed {total_chunks} code windows into VectorStore."
+    }
+
+@app.get("/api/rag/query")
+def query_project_rag(question: str = Query(...), top_k: int = Query(4)):
+    global GLOBAL_RAG_PIPELINE
+    if not GLOBAL_RAG_PIPELINE:
+        GLOBAL_RAG_PIPELINE = ProjectRAGPipeline(os.getcwd())
+        GLOBAL_RAG_PIPELINE.build_index()
+        
+    return GLOBAL_RAG_PIPELINE.query(question, top_k=top_k)
