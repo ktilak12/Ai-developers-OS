@@ -51,6 +51,26 @@ class CoderTools:
                         pass
         return matches[:20]
 
+    def delete_file(self, rel_path: str) -> str:
+        full_path = os.path.join(self.root_dir, rel_path)
+        if not os.path.exists(full_path):
+            return f"Error: File {rel_path} does not exist."
+        try:
+            os.remove(full_path)
+            return f"Successfully deleted file {rel_path}"
+        except Exception as e:
+            return f"Error deleting file {rel_path}: {e}"
+
+    def search_and_replace(self, rel_path: str, target: str, replacement: str) -> str:
+        content = self.read_file(rel_path)
+        if content.startswith("Error"):
+            return content
+        if target not in content:
+            return f"Error: Target text not found in {rel_path}"
+        new_content = content.replace(target, replacement, 1)
+        self.write_file(rel_path, new_content)
+        return f"Successfully replaced target in {rel_path}"
+
     def generate_diff(self, rel_path: str, old_content: str, new_content: str) -> str:
         old_lines = old_content.splitlines(keepends=True)
         new_lines = new_content.splitlines(keepends=True)
@@ -61,3 +81,14 @@ class CoderTools:
             tofile=f"b/{rel_path}"
         )
         return "".join(diff)
+
+    def apply_diff_to_file(self, rel_path: str, new_content: str) -> str:
+        full_path = os.path.join(self.root_dir, rel_path)
+        try:
+            os.makedirs(os.path.dirname(full_path), exist_ok=True)
+            with open(full_path, "w", encoding="utf-8") as f:
+                f.write(new_content)
+            return f"Applied changes successfully to {rel_path}"
+        except Exception as e:
+            return f"Error applying changes to {rel_path}: {e}"
+
