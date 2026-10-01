@@ -38,6 +38,10 @@ class ModifyRequest(BaseModel):
     plan: Dict[str, Any]
     directory_path: Optional[str] = None
 
+class ApplyRequest(BaseModel):
+    changes: List[Dict[str, Any]]
+    directory_path: Optional[str] = None
+
 async def make_github_request(endpoint: str, token: Optional[str] = None):
     headers = {
         "Accept": "application/vnd.github.v3+json",
@@ -162,6 +166,19 @@ def create_planner_plan(req: PlanRequest):
 
 @app.post("/api/agents/coder/modify")
 def execute_code_modification(req: ModifyRequest):
+    """
+    Executes controlled code modification based on approved implementation plan and generates unified git diffs.
+    """
     target_dir = req.directory_path or os.getcwd()
     agent = CoderAgent(target_dir)
     return agent.execute_modification(req.plan)
+
+@app.post("/api/agents/coder/apply")
+def apply_code_modification(req: ApplyRequest):
+    """
+    Applies developer-approved code changes and unified diffs directly to the workspace files.
+    """
+    target_dir = req.directory_path or os.getcwd()
+    agent = CoderAgent(target_dir)
+    return agent.apply_changes(req.changes)
+
