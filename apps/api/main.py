@@ -10,6 +10,8 @@ from intelligence.retrieval.symbol_search import SymbolSearchEngine
 from intelligence.retrieval.retriever import ProjectRAGPipeline
 from agents.planner.agent import PlannerAgent
 from agents.coder.agent import CoderAgent
+from sandbox.runner.executor import SandboxExecutor
+
 
 app = FastAPI(title="AI Developer OS API", version="0.1.0")
 
@@ -41,6 +43,12 @@ class ModifyRequest(BaseModel):
 class ApplyRequest(BaseModel):
     changes: List[Dict[str, Any]]
     directory_path: Optional[str] = None
+
+class SandboxExecuteRequest(BaseModel):
+    command: str
+    directory_path: Optional[str] = None
+    timeout: Optional[int] = 60
+
 
 async def make_github_request(endpoint: str, token: Optional[str] = None):
     headers = {
@@ -181,4 +189,26 @@ def apply_code_modification(req: ApplyRequest):
     target_dir = req.directory_path or os.getcwd()
     agent = CoderAgent(target_dir)
     return agent.apply_changes(req.changes)
+
+
+# --- PHASE 7: DOCKER SANDBOX ENDPOINTS ---
+
+@app.post("/api/sandbox/execute")
+def execute_sandbox_command(req: SandboxExecuteRequest):
+    """
+    Executes command inside isolated Docker container with strict CPU/memory limits & command security policy.
+    """
+    target_dir = req.directory_path or os.getcwd()
+    executor = SandboxExecutor(target_dir)
+    return executor.execute(req.command)
+
+@app.get("/api/sandbox/status")
+def get_sandbox_status(directory_path: Optional[str] = None):
+    """
+    Returns Docker sandbox health, daemon status, resource limits, and allowed command prefixes.
+    """
+    target_dir = directory_path or os.getcwd()
+    executor = SandboxExecutor(target_dir)
+    return executor.get_status()
+
 
