@@ -13,6 +13,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const isRagActive = pathname.startsWith("/rag");
   const isPlannerActive = pathname.startsWith("/planner");
   const isCoderActive = pathname.startsWith("/coder");
+  const isSandboxActive = pathname.startsWith("/sandbox");
+
 
   return (
     <div className="flex h-screen bg-neutral-950 text-neutral-50 overflow-hidden">
@@ -93,6 +95,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
             Code Agent
           </Link>
+          <Link 
+            href="/sandbox" 
+            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              isSandboxActive 
+                ? "bg-cyan-600/10 text-cyan-400 font-semibold" 
+                : "text-neutral-400 hover:bg-neutral-800/50 hover:text-white"
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            Docker Sandbox
+          </Link>
+
           
           <p className="px-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 mt-6">System</p>
           <Link href="#" className="flex items-center gap-3 rounded-lg text-neutral-400 hover:bg-neutral-800/50 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
