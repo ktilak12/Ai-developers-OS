@@ -10,7 +10,9 @@ from intelligence.retrieval.symbol_search import SymbolSearchEngine
 from intelligence.retrieval.retriever import ProjectRAGPipeline
 from agents.planner.agent import PlannerAgent
 from agents.coder.agent import CoderAgent
+from agents.tester.agent import TestingAgent
 from sandbox.runner.executor import SandboxExecutor
+
 
 
 app = FastAPI(title="AI Developer OS API", version="0.1.0")
@@ -48,6 +50,16 @@ class SandboxExecuteRequest(BaseModel):
     command: str
     directory_path: Optional[str] = None
     timeout: Optional[int] = 60
+
+class TestValidateRequest(BaseModel):
+    command: Optional[str] = "npm test"
+    directory_path: Optional[str] = None
+
+class TestLoopRequest(BaseModel):
+    task_request: str
+    command: Optional[str] = "npm test"
+    directory_path: Optional[str] = None
+
 
 
 async def make_github_request(endpoint: str, token: Optional[str] = None):
@@ -210,5 +222,27 @@ def get_sandbox_status(directory_path: Optional[str] = None):
     target_dir = directory_path or os.getcwd()
     executor = SandboxExecutor(target_dir)
     return executor.get_status()
+
+
+# --- PHASE 8: TESTING AGENT ENDPOINTS ---
+
+@app.post("/api/agents/tester/validate")
+def validate_tests_in_sandbox(req: TestValidateRequest):
+    """
+    Executes automated tests in Docker Sandbox, parses results, and performs AI failure analysis if failed.
+    """
+    target_dir = req.directory_path or os.getcwd()
+    agent = TestingAgent(target_dir)
+    return agent.validate_code(req.command or "npm test")
+
+@app.post("/api/agents/tester/loop")
+def run_test_and_fix_loop(req: TestLoopRequest):
+    """
+    Runs autonomous Coder -> Sandbox -> Tests -> Testing Agent -> Fix loop (bounded by MAX_ITERATIONS = 3).
+    """
+    target_dir = req.directory_path or os.getcwd()
+    agent = TestingAgent(target_dir)
+    return agent.run_autonomous_loop(req.task_request, req.command or "npm test")
+
 
 
