@@ -14,6 +14,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const isPlannerActive = pathname.startsWith("/planner");
   const isCoderActive = pathname.startsWith("/coder");
   const isSandboxActive = pathname.startsWith("/sandbox");
+  const isTesterActive = pathname.startsWith("/tester");
+
 
 
   return (
@@ -106,6 +108,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
             Docker Sandbox
           </Link>
+          <Link 
+            href="/tester" 
+            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              isTesterActive 
+                ? "bg-emerald-600/10 text-emerald-400 font-semibold" 
+                : "text-neutral-400 hover:bg-neutral-800/50 hover:text-white"
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m10 2 4 4-2 2-4-4Z"/><path d="m14 6 5 5-2 2-5-5Z"/><path d="m4.5 15.5 2 2"/><path d="m8.5 11.5 2 2"/><path d="m2 22 5.5-1.5L21.3 6.7a2.83 2.83 0 0 0 0-4l-.7-.7a2.83 2.83 0 0 0-4 0L2.8 15.8 1.3 21.3A.5.5 0 0 0 2 22Z"/></svg>
+            Testing Agent
+          </Link>
+
 
           
           <p className="px-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 mt-6">System</p>
