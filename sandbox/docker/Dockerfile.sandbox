@@ -1,0 +1,33 @@
+# AI Developer OS: Secure Execution Sandbox Container
+# Isolated environment for running npm test, npm run build, pytest, and linters.
+FROM node:20-bookworm-slim
+
+# Install Python 3, pip, git, and required test runners
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    python3-pip \
+    python3-venv \
+    git \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create dedicated unprivileged sandbox user (UID 1001)
+RUN groupadd -g 1001 sandboxgroup && \
+    useradd -u 1001 -g sandboxgroup -m -s /bin/bash sandboxuser
+
+# Create workspace directory with restricted permissions
+WORKDIR /workspace
+RUN chown -R sandboxuser:sandboxgroup /workspace
+
+# Switch to non-root user
+USER sandboxuser
+
+# Environment variables for clean testing
+ENV NODE_ENV=test \
+    CI=true \
+    PYTHONUNBUFFERED=1 \
+    PATH="/home/sandboxuser/.local/bin:${PATH}"
+
+# Default command
+CMD ["bash"]
