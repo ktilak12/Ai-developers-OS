@@ -17,6 +17,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const isTesterActive = pathname.startsWith("/tester");
   const isSecurityActive = pathname.startsWith("/security");
   const isMcpActive = pathname.startsWith("/mcp");
+  const isBrowserActive = pathname.startsWith("/browser");
 
 
 
@@ -144,6 +145,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v8"/><path d="m4.93 10.93 4.24 4.24"/><path d="M2 12h8"/><path d="m4.93 13.07 4.24-4.24"/><path d="M14 18a4 4 0 0 0 4-4V6a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v8a4 4 0 0 0 4 4Z"/></svg>
             MCP Tool Hub
+          </Link>
+          <Link 
+            href="/browser" 
+            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              isBrowserActive 
+                ? "bg-teal-600/10 text-teal-400 font-semibold" 
+                : "text-neutral-400 hover:bg-neutral-800/50 hover:text-white"
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+            Browser Agent
           </Link>
 
 
