@@ -5,6 +5,8 @@ from mcp.filesystem.tools import ListFilesTool, ReadFileTool, WriteFileTool, Sea
 from mcp.github.tools import GetRepositoryTool, CreatePullRequestTool
 from mcp.docker.tools import RunContainerCommandTool, GetContainerStatusTool
 from mcp.terminal.tools import ExecuteShellTool, GetEnvironmentTool
+from mcp.browser.tools import OpenPageTool, ClickElementTool, TypeTextTool, CaptureScreenshotTool
+
 
 class MCPRegistry:
     """
@@ -35,6 +37,13 @@ class MCPRegistry:
         # Terminal MCP Server
         self.register(ExecuteShellTool(self.root_dir))
         self.register(GetEnvironmentTool(self.root_dir))
+
+        # Browser MCP Server
+        self.register(OpenPageTool(self.root_dir))
+        self.register(ClickElementTool(self.root_dir))
+        self.register(TypeTextTool(self.root_dir))
+        self.register(CaptureScreenshotTool(self.root_dir))
+
 
     def register(self, tool: BaseMCPTool):
         self.tools[tool.name] = tool
