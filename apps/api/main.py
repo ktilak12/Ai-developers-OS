@@ -12,8 +12,10 @@ from agents.planner.agent import PlannerAgent
 from agents.coder.agent import CoderAgent
 from agents.tester.agent import TestingAgent
 from agents.security.agent import SecurityAgent
+from agents.browser.agent import BrowserAgent
 from sandbox.runner.executor import SandboxExecutor
 from mcp.registry import get_mcp_registry
+
 
 
 
@@ -73,6 +75,13 @@ class MCPCallRequest(BaseModel):
     tool_name: str
     arguments: Optional[Dict[str, Any]] = None
     directory_path: Optional[str] = None
+
+class BrowserVerifyRequest(BaseModel):
+    task_name: Optional[str] = "Verify login flow"
+    start_url: Optional[str] = "http://localhost:3000/login"
+    steps: Optional[List[Dict[str, Any]]] = None
+    directory_path: Optional[str] = None
+
 
 
 
@@ -326,6 +335,23 @@ def call_mcp_tool(req: MCPCallRequest):
     registry = get_mcp_registry(target_dir)
     res = registry.call_tool(req.tool_name, req.arguments or {})
     return res.to_dict()
+
+
+# --- PHASE 11: BROWSER AGENT ENDPOINTS ---
+
+@app.post("/api/agents/browser/verify")
+def verify_browser_journey(req: BrowserVerifyRequest):
+    """
+    Executes an autonomous end-to-end (E2E) browser verification journey and captures screenshot artifacts.
+    """
+    target_dir = req.directory_path or os.getcwd()
+    agent = BrowserAgent(target_dir)
+    return agent.verify_flow(
+        task_name=req.task_name or "Verify login flow",
+        start_url=req.start_url or "http://localhost:3000/login",
+        steps=req.steps
+    )
+
 
 
 
