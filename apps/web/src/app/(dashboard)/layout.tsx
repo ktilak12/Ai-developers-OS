@@ -16,6 +16,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const isSandboxActive = pathname.startsWith("/sandbox");
   const isTesterActive = pathname.startsWith("/tester");
   const isSecurityActive = pathname.startsWith("/security");
+  const isMcpActive = pathname.startsWith("/mcp");
+
 
 
 
@@ -132,6 +134,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             Security Agent
           </Link>
+          <Link 
+            href="/mcp" 
+            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              isMcpActive 
+                ? "bg-indigo-600/10 text-indigo-400 font-semibold" 
+                : "text-neutral-400 hover:bg-neutral-800/50 hover:text-white"
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v8"/><path d="m4.93 10.93 4.24 4.24"/><path d="M2 12h8"/><path d="m4.93 13.07 4.24-4.24"/><path d="M14 18a4 4 0 0 0 4-4V6a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v8a4 4 0 0 0 4 4Z"/></svg>
+            MCP Tool Hub
+          </Link>
+
 
 
 
