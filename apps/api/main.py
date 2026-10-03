@@ -13,6 +13,8 @@ from agents.coder.agent import CoderAgent
 from agents.tester.agent import TestingAgent
 from agents.security.agent import SecurityAgent
 from sandbox.runner.executor import SandboxExecutor
+from mcp.registry import get_mcp_registry
+
 
 
 
@@ -66,6 +68,12 @@ class SecurityScanRequest(BaseModel):
     changes: Optional[List[Dict[str, Any]]] = None
     file_paths: Optional[List[str]] = None
     directory_path: Optional[str] = None
+
+class MCPCallRequest(BaseModel):
+    tool_name: str
+    arguments: Optional[Dict[str, Any]] = None
+    directory_path: Optional[str] = None
+
 
 
 
@@ -280,6 +288,45 @@ def get_security_detection_rules(directory_path: Optional[str] = None):
         "insecure_config_count": len(agent.tools.INSECURE_CONFIG_PATTERNS),
         "policy": "ZERO_TOLERANCE_FOR_CRITICAL_HIGH"
     }
+
+
+# --- PHASE 10: MCP INTEGRATION ENDPOINTS ---
+
+@app.get("/api/mcp/tools")
+def list_mcp_tools(directory_path: Optional[str] = None):
+    """
+    Returns all registered Model Context Protocol (MCP) tools and input schemas.
+    """
+    target_dir = directory_path or os.getcwd()
+    registry = get_mcp_registry(target_dir)
+    return {
+        "status": "success",
+        "tools_count": len(registry.tools),
+        "tools": registry.list_tools()
+    }
+
+@app.get("/api/mcp/servers")
+def list_mcp_servers(directory_path: Optional[str] = None):
+    """
+    Returns all active MCP servers and registered tool counts.
+    """
+    target_dir = directory_path or os.getcwd()
+    registry = get_mcp_registry(target_dir)
+    return {
+        "status": "success",
+        "servers": registry.list_servers()
+    }
+
+@app.post("/api/mcp/call")
+def call_mcp_tool(req: MCPCallRequest):
+    """
+    Invokes an MCP tool using standard JSON-RPC envelope arguments.
+    """
+    target_dir = req.directory_path or os.getcwd()
+    registry = get_mcp_registry(target_dir)
+    res = registry.call_tool(req.tool_name, req.arguments or {})
+    return res.to_dict()
+
 
 
 
