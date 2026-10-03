@@ -15,6 +15,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const isCoderActive = pathname.startsWith("/coder");
   const isSandboxActive = pathname.startsWith("/sandbox");
   const isTesterActive = pathname.startsWith("/tester");
+  const isSecurityActive = pathname.startsWith("/security");
+
 
 
 
@@ -119,6 +121,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m10 2 4 4-2 2-4-4Z"/><path d="m14 6 5 5-2 2-5-5Z"/><path d="m4.5 15.5 2 2"/><path d="m8.5 11.5 2 2"/><path d="m2 22 5.5-1.5L21.3 6.7a2.83 2.83 0 0 0 0-4l-.7-.7a2.83 2.83 0 0 0-4 0L2.8 15.8 1.3 21.3A.5.5 0 0 0 2 22Z"/></svg>
             Testing Agent
           </Link>
+          <Link 
+            href="/security" 
+            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              isSecurityActive 
+                ? "bg-rose-600/10 text-rose-400 font-semibold" 
+                : "text-neutral-400 hover:bg-neutral-800/50 hover:text-white"
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Security Agent
+          </Link>
+
 
 
           
