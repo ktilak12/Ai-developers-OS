@@ -11,7 +11,9 @@ from intelligence.retrieval.retriever import ProjectRAGPipeline
 from agents.planner.agent import PlannerAgent
 from agents.coder.agent import CoderAgent
 from agents.tester.agent import TestingAgent
+from agents.security.agent import SecurityAgent
 from sandbox.runner.executor import SandboxExecutor
+
 
 
 
@@ -59,6 +61,12 @@ class TestLoopRequest(BaseModel):
     task_request: str
     command: Optional[str] = "npm test"
     directory_path: Optional[str] = None
+
+class SecurityScanRequest(BaseModel):
+    changes: Optional[List[Dict[str, Any]]] = None
+    file_paths: Optional[List[str]] = None
+    directory_path: Optional[str] = None
+
 
 
 
@@ -243,6 +251,36 @@ def run_test_and_fix_loop(req: TestLoopRequest):
     target_dir = req.directory_path or os.getcwd()
     agent = TestingAgent(target_dir)
     return agent.run_autonomous_loop(req.task_request, req.command or "npm test")
+
+
+# --- PHASE 9: SECURITY AGENT ENDPOINTS ---
+
+@app.post("/api/agents/security/scan")
+def scan_security_vulnerabilities(req: SecurityScanRequest):
+    """
+    Performs static security scan, secret detection, and code injection auditing.
+    """
+    target_dir = req.directory_path or os.getcwd()
+    agent = SecurityAgent(target_dir)
+    if req.changes:
+        return agent.scan_changes(req.changes)
+    return agent.scan_repository(req.file_paths)
+
+@app.get("/api/agents/security/rules")
+def get_security_detection_rules(directory_path: Optional[str] = None):
+    """
+    Returns active security scanning rules and pattern categories.
+    """
+    target_dir = directory_path or os.getcwd()
+    agent = SecurityAgent(target_dir)
+    return {
+        "secret_patterns_count": len(agent.tools.SECRET_PATTERNS),
+        "dangerous_patterns_count": len(agent.tools.DANGEROUS_CODE_PATTERNS),
+        "sqli_patterns_count": len(agent.tools.SQL_INJECTION_PATTERNS),
+        "insecure_config_count": len(agent.tools.INSECURE_CONFIG_PATTERNS),
+        "policy": "ZERO_TOLERANCE_FOR_CRITICAL_HIGH"
+    }
+
 
 
 
