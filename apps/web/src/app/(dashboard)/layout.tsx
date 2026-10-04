@@ -18,6 +18,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const isSecurityActive = pathname.startsWith("/security");
   const isMcpActive = pathname.startsWith("/mcp");
   const isBrowserActive = pathname.startsWith("/browser");
+  const isGraphActive = pathname.startsWith("/graph");
 
 
 
@@ -156,6 +157,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
             Browser Agent
+          </Link>
+          <Link 
+            href="/graph" 
+            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              isGraphActive 
+                ? "bg-violet-600/10 text-violet-400 font-semibold" 
+                : "text-neutral-400 hover:bg-neutral-800/50 hover:text-white"
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="6" y1="9" x2="6" y2="15"/><line x1="9" y1="18" x2="15" y2="18"/><line x1="18" y1="9" x2="18" y2="15"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg>
+            Code Graph
           </Link>
 
 
