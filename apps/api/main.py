@@ -15,6 +15,9 @@ from agents.security.agent import SecurityAgent
 from agents.browser.agent import BrowserAgent
 from sandbox.runner.executor import SandboxExecutor
 from mcp.registry import get_mcp_registry
+from intelligence.graph.builder import CodeGraphBuilder
+from intelligence.graph.storage import KnowledgeGraphStore
+from intelligence.graph.query import GraphQueryEngine
 
 
 
@@ -351,6 +354,84 @@ def verify_browser_journey(req: BrowserVerifyRequest):
         start_url=req.start_url or "http://localhost:3000/login",
         steps=req.steps
     )
+
+
+# --- Phase 12: Code Knowledge Graph & Blast Radius Endpoints ---
+
+GLOBAL_GRAPH_STORE: Optional[KnowledgeGraphStore] = None
+
+class GraphBuildRequest(BaseModel):
+    directory_path: Optional[str] = None
+
+class BlastRadiusRequest(BaseModel):
+    target_symbol: str
+
+@app.post("/api/intelligence/graph/build")
+async def build_code_knowledge_graph(req: GraphBuildRequest = GraphBuildRequest()):
+    global GLOBAL_GRAPH_STORE
+    target_dir = req.directory_path or os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+    builder = CodeGraphBuilder(root_dir=target_dir)
+    graph_data = builder.build_from_directory()
+    GLOBAL_GRAPH_STORE = KnowledgeGraphStore(graph_data)
+    
+    query_engine = GraphQueryEngine(GLOBAL_GRAPH_STORE)
+    return {
+        "status": "success",
+        "total_nodes": graph_data.total_nodes,
+        "total_edges": graph_data.total_edges,
+        "density": graph_data.density,
+        "entrypoints": query_engine.find_entrypoints(),
+        "dead_code_candidates": query_engine.find_dead_code_candidates()[:10],
+        "nodes": [n.dict() for n in graph_data.nodes[:150]],
+        "edges": [e.dict() for e in graph_data.edges[:250]]
+    }
+
+@app.get("/api/intelligence/graph/overview")
+async def get_graph_overview():
+    global GLOBAL_GRAPH_STORE
+    if not GLOBAL_GRAPH_STORE:
+        # Build lazily if not yet initialized
+        target_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+        builder = CodeGraphBuilder(root_dir=target_dir)
+        graph_data = builder.build_from_directory()
+        GLOBAL_GRAPH_STORE = KnowledgeGraphStore(graph_data)
+        
+    query_engine = GraphQueryEngine(GLOBAL_GRAPH_STORE)
+    return {
+        "total_nodes": len(GLOBAL_GRAPH_STORE.nodes),
+        "total_edges": sum(len(edges) for edges in GLOBAL_GRAPH_STORE.adj.values()),
+        "clusters": query_engine.get_architecture_clusters(),
+        "entrypoints": query_engine.find_entrypoints(),
+        "dead_code_candidates": query_engine.find_dead_code_candidates(),
+        "nodes": [n.dict() for n in list(GLOBAL_GRAPH_STORE.nodes.values())[:200]],
+        "edges": [e.dict() for edges in list(GLOBAL_GRAPH_STORE.adj.values()) for e in edges][:300]
+    }
+
+@app.post("/api/intelligence/graph/blast-radius")
+async def calculate_blast_radius(req: BlastRadiusRequest):
+    global GLOBAL_GRAPH_STORE
+    if not GLOBAL_GRAPH_STORE:
+        target_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+        builder = CodeGraphBuilder(root_dir=target_dir)
+        graph_data = builder.build_from_directory()
+        GLOBAL_GRAPH_STORE = KnowledgeGraphStore(graph_data)
+        
+    result = GLOBAL_GRAPH_STORE.calculate_blast_radius(req.target_symbol)
+    return result.dict()
+
+@app.get("/api/intelligence/graph/symbol/{symbol_name}")
+async def get_symbol_graph_context(symbol_name: str):
+    global GLOBAL_GRAPH_STORE
+    if not GLOBAL_GRAPH_STORE:
+        target_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+        builder = CodeGraphBuilder(root_dir=target_dir)
+        graph_data = builder.build_from_directory()
+        GLOBAL_GRAPH_STORE = KnowledgeGraphStore(graph_data)
+        
+    query_engine = GraphQueryEngine(GLOBAL_GRAPH_STORE)
+    context = query_engine.get_symbol_context(symbol_name)
+    return context
+
 
 
 
