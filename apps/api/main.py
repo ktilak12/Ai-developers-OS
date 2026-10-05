@@ -18,6 +18,12 @@ from mcp.registry import get_mcp_registry
 from intelligence.graph.builder import CodeGraphBuilder
 from intelligence.graph.storage import KnowledgeGraphStore
 from intelligence.graph.query import GraphQueryEngine
+from memory.manager import ProjectMemoryManager
+from memory.models import (
+    ArchitectureRecord, DecisionRecord, TaskHistoryRecord,
+    DeveloperPreferenceRecord, DecisionStatus, TaskStatus, PreferenceCategory
+)
+from orchestrator import MultiAgentOrchestrator, OrchestratorState, WorkflowStatus, ApprovalState
 
 
 
@@ -431,6 +437,279 @@ async def get_symbol_graph_context(symbol_name: str):
     query_engine = GraphQueryEngine(GLOBAL_GRAPH_STORE)
     context = query_engine.get_symbol_context(symbol_name)
     return context
+
+
+# --- PHASE 13: PROJECT MEMORY ENDPOINTS ---
+
+GLOBAL_MEMORY_MANAGER: Optional[ProjectMemoryManager] = None
+
+def get_memory_manager(directory_path: Optional[str] = None) -> ProjectMemoryManager:
+    global GLOBAL_MEMORY_MANAGER
+    target_dir = directory_path or os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+    if not GLOBAL_MEMORY_MANAGER or GLOBAL_MEMORY_MANAGER.root_dir != target_dir:
+        GLOBAL_MEMORY_MANAGER = ProjectMemoryManager(root_dir=target_dir)
+    return GLOBAL_MEMORY_MANAGER
+
+class MemoryArchitectureRequest(BaseModel):
+    id: str
+    component_name: str
+    technology_stack: List[str] = []
+    entrypoints: List[str] = []
+    conventions: List[str] = []
+    description: str
+    dependencies: List[str] = []
+    directory_path: Optional[str] = None
+
+class MemoryDecisionRequest(BaseModel):
+    id: str
+    title: str
+    status: DecisionStatus = DecisionStatus.ACCEPTED
+    author: Optional[str] = "AI Developer OS"
+    context: str
+    decision: str
+    consequences: List[str] = []
+    alternatives_considered: List[str] = []
+    directory_path: Optional[str] = None
+
+class MemoryTaskRequest(BaseModel):
+    id: str
+    task_title: str
+    task_request: str
+    agent_name: str
+    status: TaskStatus = TaskStatus.COMPLETED
+    files_changed: List[str] = []
+    test_results: Optional[Dict[str, Any]] = None
+    fix_summary: Optional[str] = None
+    directory_path: Optional[str] = None
+
+class MemoryPreferenceRequest(BaseModel):
+    id: str
+    category: PreferenceCategory
+    key: str
+    value: str
+    description: str
+    directory_path: Optional[str] = None
+
+
+@app.get("/api/memory/overview")
+async def get_memory_overview(directory_path: Optional[str] = None):
+    mgr = get_memory_manager(directory_path)
+    return mgr.get_overview().model_dump()
+
+
+@app.get("/api/memory/architecture")
+async def get_memory_architecture(directory_path: Optional[str] = None):
+    mgr = get_memory_manager(directory_path)
+    return {
+        "status": "success",
+        "stack_summary": mgr.architecture.get_stack_summary(),
+        "components": [c.model_dump() for c in mgr.architecture.list_all()]
+    }
+
+
+@app.post("/api/memory/architecture")
+async def add_memory_architecture(req: MemoryArchitectureRequest):
+    mgr = get_memory_manager(req.directory_path)
+    record = ArchitectureRecord(
+        id=req.id,
+        component_name=req.component_name,
+        technology_stack=req.technology_stack,
+        entrypoints=req.entrypoints,
+        conventions=req.conventions,
+        description=req.description,
+        dependencies=req.dependencies
+    )
+    saved = mgr.architecture.add_or_update(record)
+    mgr.save_to_storage()
+    return saved.model_dump()
+
+
+@app.get("/api/memory/decisions")
+async def get_memory_decisions(status: Optional[DecisionStatus] = None, directory_path: Optional[str] = None):
+    mgr = get_memory_manager(directory_path)
+    decs = mgr.decisions.list_decisions(status=status)
+    return {
+        "status": "success",
+        "total": len(decs),
+        "decisions": [d.model_dump() for d in decs]
+    }
+
+
+@app.post("/api/memory/decisions")
+async def add_memory_decision(req: MemoryDecisionRequest):
+    mgr = get_memory_manager(req.directory_path)
+    record = DecisionRecord(
+        id=req.id,
+        title=req.title,
+        status=req.status,
+        author=req.author or "AI Developer OS",
+        context=req.context,
+        decision=req.decision,
+        consequences=req.consequences,
+        alternatives_considered=req.alternatives_considered
+    )
+    saved = mgr.decisions.add_decision(record)
+    mgr.save_to_storage()
+    return saved.model_dump()
+
+
+@app.put("/api/memory/decisions/{decision_id}/status")
+async def update_decision_status(decision_id: str, status: DecisionStatus, directory_path: Optional[str] = None):
+    mgr = get_memory_manager(directory_path)
+    updated = mgr.decisions.update_status(decision_id, status)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Decision record not found")
+    mgr.save_to_storage()
+    return updated.model_dump()
+
+
+@app.get("/api/memory/tasks")
+async def get_memory_tasks(limit: int = 50, status: Optional[TaskStatus] = None, directory_path: Optional[str] = None):
+    mgr = get_memory_manager(directory_path)
+    tasks = mgr.tasks.list_tasks(limit=limit, status=status)
+    return {
+        "status": "success",
+        "total": len(tasks),
+        "tasks": [t.model_dump() for t in tasks]
+    }
+
+
+@app.post("/api/memory/tasks")
+async def add_memory_task(req: MemoryTaskRequest):
+    mgr = get_memory_manager(req.directory_path)
+    record = TaskHistoryRecord(
+        id=req.id,
+        task_title=req.task_title,
+        task_request=req.task_request,
+        agent_name=req.agent_name,
+        status=req.status,
+        files_changed=req.files_changed,
+        test_results=req.test_results,
+        fix_summary=req.fix_summary
+    )
+    saved = mgr.tasks.record_task(record)
+    mgr.save_to_storage()
+    return saved.model_dump()
+
+
+@app.get("/api/memory/preferences")
+async def get_memory_preferences(category: Optional[PreferenceCategory] = None, directory_path: Optional[str] = None):
+    mgr = get_memory_manager(directory_path)
+    prefs = mgr.preferences.list_by_category(category=category)
+    return {
+        "status": "success",
+        "total": len(prefs),
+        "preferences": [p.model_dump() for p in prefs]
+    }
+
+
+@app.post("/api/memory/preferences")
+async def add_memory_preference(req: MemoryPreferenceRequest):
+    mgr = get_memory_manager(req.directory_path)
+    record = DeveloperPreferenceRecord(
+        id=req.id,
+        category=req.category,
+        key=req.key,
+        value=req.value,
+        description=req.description
+    )
+    saved = mgr.preferences.add_or_update_preference(record)
+    mgr.save_to_storage()
+    return saved.model_dump()
+
+
+@app.get("/api/memory/search")
+async def search_memory(query: str = Query(..., min_length=1), directory_path: Optional[str] = None):
+    mgr = get_memory_manager(directory_path)
+    return mgr.search_all_memory(query)
+
+
+@app.get("/api/memory/context")
+async def get_memory_context(task_description: str = "", directory_path: Optional[str] = None):
+    mgr = get_memory_manager(directory_path)
+    return {
+        "status": "success",
+        "task_description": task_description,
+        "context": mgr.get_llm_context(task_description)
+    }
+
+
+# --- PHASE 14: MULTI-AGENT ORCHESTRATION ENDPOINTS ---
+
+GLOBAL_ORCHESTRATOR: Optional[MultiAgentOrchestrator] = None
+
+def get_orchestrator(directory_path: Optional[str] = None) -> MultiAgentOrchestrator:
+    global GLOBAL_ORCHESTRATOR
+    target_dir = directory_path or os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+    if not GLOBAL_ORCHESTRATOR or GLOBAL_ORCHESTRATOR.root_dir != target_dir:
+        GLOBAL_ORCHESTRATOR = MultiAgentOrchestrator(root_dir=target_dir)
+    return GLOBAL_ORCHESTRATOR
+
+class OrchestratorRunRequest(BaseModel):
+    task_request: str
+    auto_approve: Optional[bool] = False
+    test_command: Optional[str] = None
+    directory_path: Optional[str] = None
+
+class OrchestratorApproveRequest(BaseModel):
+    workflow_id: str
+    approve: bool
+    notes: Optional[str] = None
+    directory_path: Optional[str] = None
+
+
+@app.post("/api/orchestrator/run")
+async def run_multi_agent_workflow(req: OrchestratorRunRequest):
+    """
+    Executes the autonomous multi-agent pipeline:
+    Planner -> Researcher -> Coder -> Sandbox/Tester -> Security -> Reviewer -> Human Approval Gate -> GitHub PR.
+    """
+    orch = get_orchestrator(req.directory_path)
+    state = orch.execute_workflow(
+        task_request=req.task_request,
+        auto_approve=req.auto_approve or False,
+        test_command=req.test_command
+    )
+    return state.model_dump()
+
+
+@app.get("/api/orchestrator/state/{workflow_id}")
+async def get_orchestrator_state(workflow_id: str, directory_path: Optional[str] = None):
+    """Returns the current state and telemetry of a running or completed workflow."""
+    orch = get_orchestrator(directory_path)
+    state = orch.get_workflow(workflow_id)
+    if not state:
+        raise HTTPException(status_code=404, detail="Workflow not found.")
+    return state.model_dump()
+
+
+@app.post("/api/orchestrator/approve")
+async def handle_orchestrator_approval(req: OrchestratorApproveRequest):
+    """Processes human developer sign-off at the approval gate."""
+    orch = get_orchestrator(req.directory_path)
+    try:
+        updated = orch.handle_human_decision(
+            workflow_id=req.workflow_id,
+            approve=req.approve,
+            notes=req.notes
+        )
+        return updated.model_dump()
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.get("/api/orchestrator/history")
+async def get_orchestrator_history(directory_path: Optional[str] = None):
+    """Lists recent workflow executions, traces, and metrics."""
+    orch = get_orchestrator(directory_path)
+    workflows = orch.list_workflows()
+    return {
+        "status": "success",
+        "total": len(workflows),
+        "workflows": [w.model_dump() for w in workflows]
+    }
+
+
 
 
 
