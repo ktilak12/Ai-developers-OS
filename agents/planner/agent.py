@@ -5,17 +5,19 @@ from agents.planner.tools import PlannerTools
 from intelligence.retrieval.retriever import ProjectRAGPipeline
 from intelligence.indexing.code_indexer import CodeIndexer
 from intelligence.retrieval.symbol_search import SymbolSearchEngine
+from memory.manager import ProjectMemoryManager
 
 class PlannerAgent:
     """
     Planner Agent: Analyzes software requests and produces structured, context-aware implementation plans
-    using Project RAG and Code Intelligence before code modifications are executed.
+    using Project RAG, Code Intelligence, and Project Memory (ADRs, preferences, architecture).
     """
 
     def __init__(self, root_dir: str):
         self.root_dir = root_dir
         self.tools = PlannerTools(root_dir)
         self.rag = ProjectRAGPipeline(root_dir)
+        self.memory = ProjectMemoryManager(root_dir)
         
     def generate_plan(self, task_request: str) -> Dict[str, Any]:
         # Step 1: Query RAG vector index for relevant code chunks
@@ -24,12 +26,20 @@ class PlannerAgent:
         results_count = rag_res.get("total_results", 0)
 
         # Step 2: Query Code Intelligence AST symbols
-        ast_symbols = []
+        ast_symbols: List[Dict[str, Any]] = []
         try:
             indexer = CodeIndexer(self.root_dir)
             index_data = indexer.scan_and_index()
             search_engine = SymbolSearchEngine(index_data)
-            ast_symbols = search_engine.search(task_request)
+            search_res = search_engine.search(task_request)
+            if isinstance(search_res, dict):
+                ast_symbols = (
+                    search_res.get("matched_functions", []) +
+                    search_res.get("matched_classes", []) +
+                    search_res.get("matched_components", [])
+                )
+            elif isinstance(search_res, list):
+                ast_symbols = search_res
         except Exception:
             ast_symbols = []
 
@@ -135,7 +145,8 @@ class PlannerAgent:
                 "rag_chunks_found": results_count,
                 "ast_symbols_matched": len(ast_symbols),
                 "top_retrieved_files": retrieved_files[:4],
-                "top_matched_symbols": [s.get("symbol_name") for s in ast_symbols[:4]]
+                "top_matched_symbols": [s.get("name", s.get("symbol_name", "")) for s in ast_symbols[:4]],
+                "project_memory_context": self.memory.get_llm_context(task_request)
             },
             "developer_approval_required": True
         }
