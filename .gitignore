@@ -29,3 +29,8 @@ env/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# runtime & cache
+.memory/
+.pytest_cache/
+
