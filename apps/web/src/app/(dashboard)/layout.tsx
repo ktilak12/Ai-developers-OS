@@ -19,6 +19,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const isMcpActive = pathname.startsWith("/mcp");
   const isBrowserActive = pathname.startsWith("/browser");
   const isGraphActive = pathname.startsWith("/graph");
+  const isMemoryActive = pathname.startsWith("/memory");
+  const isOrchestratorActive = pathname.startsWith("/orchestrator");
 
 
 
@@ -80,6 +82,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
             Project RAG
+          </Link>
+          <Link 
+            href="/orchestrator" 
+            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              isOrchestratorActive 
+                ? "bg-rose-600/10 text-rose-400 font-semibold" 
+                : "text-neutral-400 hover:bg-neutral-800/50 hover:text-white"
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3"/><path d="M12 19v3"/><path d="M2 12h3"/><path d="M19 12h3"/><path d="m4.93 4.93 2.12 2.12"/><path d="m16.95 16.95 2.12 2.12"/><path d="m4.93 19.07 2.12-2.12"/><path d="m16.95 7.05 2.12-2.12"/></svg>
+            AI Orchestrator
           </Link>
           <Link 
             href="/planner" 
@@ -168,6 +181,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="6" y1="9" x2="6" y2="15"/><line x1="9" y1="18" x2="15" y2="18"/><line x1="18" y1="9" x2="18" y2="15"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg>
             Code Graph
+          </Link>
+          <Link 
+            href="/memory" 
+            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              isMemoryActive 
+                ? "bg-emerald-600/10 text-emerald-400 font-semibold" 
+                : "text-neutral-400 hover:bg-neutral-800/50 hover:text-white"
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 12 2.1 10.1"/><path d="M12 12v9.9"/><path d="M12 12h9.9"/></svg>
+            Project Memory
           </Link>
 
 
