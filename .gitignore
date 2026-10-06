@@ -32,5 +32,7 @@ yarn-error.log*
 
 # runtime & cache
 .memory/
+.observability/
+.evaluation/
 .pytest_cache/
 
