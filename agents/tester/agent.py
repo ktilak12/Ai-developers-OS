@@ -136,3 +136,10 @@ class TestingAgent:
             "iteration_history": iterations,
             "final_status": "PASSED" if is_resolved else "REQUIRES_HUMAN_INSPECTION"
         }
+
+    @staticmethod
+    def format_test_metrics_summary(passed_count: int, failed_count: int, duration_sec: float) -> str:
+        """Formats a human-readable single-line test execution summary."""
+        total = passed_count + failed_count
+        pass_pct = round((passed_count / total * 100), 1) if total > 0 else 100.0
+        return f"{passed_count}/{total} tests passed ({pass_pct}%) in {duration_sec:.2f}s"
