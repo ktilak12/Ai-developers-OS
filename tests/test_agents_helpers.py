@@ -1,7 +1,7 @@
 import pytest
 from agents.coder.tools import CoderTools
 from agents.security.agent import SecurityAgent
-from agents.tester.agent import TestingAgent
+from agents.tester.agent import TestingAgent as AgentTesterClass
 from agents.reviewer.agent import ReviewAgent
 
 
@@ -29,7 +29,7 @@ def test_security_shannon_entropy():
 
 
 def test_tester_metrics_formatter():
-    summary = TestingAgent.format_test_metrics_summary(passed_count=48, failed_count=2, duration_sec=3.45)
+    summary = AgentTesterClass.format_test_metrics_summary(passed_count=48, failed_count=2, duration_sec=3.45)
     assert "48/50 tests passed (96.0%) in 3.45s" in summary
 
 
