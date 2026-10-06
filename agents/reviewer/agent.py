@@ -78,3 +78,10 @@ class ReviewAgent:
                 "Review flagged items that should be addressed before final human sign-off."
             )
         }
+
+    @staticmethod
+    def validate_conventional_title(title: str) -> bool:
+        """Validates if a Pull Request title conforms to Conventional Commits standards."""
+        import re
+        pattern = r"^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-zA-Z0-9_-]+\))?:\s.+$"
+        return bool(re.match(pattern, title.strip()))
