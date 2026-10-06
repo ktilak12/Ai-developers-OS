@@ -101,3 +101,17 @@ class SecurityAgent:
                 "reason": "Clean scan, zero critical/high findings" if passed else "Critical or High severity findings must be resolved prior to merge."
             }
         }
+
+    @staticmethod
+    def calculate_shannon_entropy(data: str) -> float:
+        """Calculates the Shannon entropy score of a string to detect high-entropy secrets and credentials."""
+        import math
+        if not data:
+            return 0.0
+        entropy = 0.0
+        length = float(len(data))
+        for x in set(data):
+            p_x = float(data.count(x)) / length
+            if p_x > 0:
+                entropy += - p_x * math.log2(p_x)
+        return round(entropy, 4)
