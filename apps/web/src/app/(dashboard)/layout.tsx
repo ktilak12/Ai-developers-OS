@@ -21,6 +21,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const isGraphActive = pathname.startsWith("/graph");
   const isMemoryActive = pathname.startsWith("/memory");
   const isOrchestratorActive = pathname.startsWith("/orchestrator");
+  const isObservabilityActive = pathname.startsWith("/observability");
+  const isEvaluationActive = pathname.startsWith("/evaluation");
 
 
 
@@ -192,6 +194,28 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 12 2.1 10.1"/><path d="M12 12v9.9"/><path d="M12 12h9.9"/></svg>
             Project Memory
+          </Link>
+          <Link 
+            href="/observability" 
+            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              isObservabilityActive 
+                ? "bg-amber-600/10 text-amber-400 font-semibold" 
+                : "text-neutral-400 hover:bg-neutral-800/50 hover:text-white"
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Observability & Traces
+          </Link>
+          <Link 
+            href="/evaluation" 
+            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              isEvaluationActive 
+                ? "bg-emerald-600/10 text-emerald-400 font-semibold" 
+                : "text-neutral-400 hover:bg-neutral-800/50 hover:text-white"
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+            SWE Benchmarks
           </Link>
 
 
