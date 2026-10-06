@@ -1036,17 +1036,15 @@ Reviewer
 
 ---
 
-## Phase 15 — Observability
+## Phase 15 — Observability & Agent Tracing
 
-Track:
+AI Developer OS implements an OpenTelemetry-compatible tracing and telemetry layer for autonomous multi-agent pipelines:
 
-* Agent execution
-* Tool calls
-* latency
-* failures
-* token usage
-* task success
-* retry count
+* **Granular Agent Spans:** End-to-end tracing for `Planner`, `Researcher`, `Coder`, `Tester`, `Security`, and `Reviewer` agents.
+* **Tool Call Latency Tracking:** Microsecond-resolution timing and payload recording for all AST, RAG, File, Sandbox, and Security tool invocations.
+* **Token Consumption & Cost Accounting:** Real-time calculation of prompt/completion tokens and estimated USD costs ($3.00/M in, $15.00/M out).
+* **Self-Healing Retry Loops:** Automatic tracking of test failure iterations and self-correcting coder retry cycles.
+* **Interactive Next.js Dashboard:** Live waterfall visualizer, span breakdown, and tool call payload inspector.
 
 ---
 
