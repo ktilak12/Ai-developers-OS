@@ -1,0 +1,14 @@
+# Core AI Developer OS Dependencies
+fastapi>=0.115.0
+uvicorn>=0.30.0
+pydantic>=2.8.0
+httpx>=0.27.0
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+anyio>=4.0.0
+networkx>=3.2.0
+tree-sitter>=0.21.0
+tree-sitter-languages>=1.10.0
+sentence-transformers>=3.0.0
+numpy>=1.26.0
+python-dotenv>=1.0.0
