@@ -92,3 +92,19 @@ class CoderTools:
         except Exception as e:
             return f"Error applying changes to {rel_path}: {e}"
 
+    def compute_diff_stats(self, diff_text: str) -> Dict[str, int]:
+        """Calculates additions (+), deletions (-), and total modified lines in a unified diff."""
+        additions = 0
+        deletions = 0
+        for line in diff_text.splitlines():
+            if line.startswith("+") and not line.startswith("+++"):
+                additions += 1
+            elif line.startswith("-") and not line.startswith("---"):
+                deletions += 1
+        return {
+            "additions": additions,
+            "deletions": deletions,
+            "total_changes": additions + deletions
+        }
+
+
