@@ -24,6 +24,10 @@ from memory.models import (
     DeveloperPreferenceRecord, DecisionStatus, TaskStatus, PreferenceCategory
 )
 from orchestrator import MultiAgentOrchestrator, OrchestratorState, WorkflowStatus, ApprovalState
+from observability.manager import ObservabilityManager
+from evaluation.evaluator import SWEEvaluator
+from evaluation.dataset import get_all_benchmark_tasks, get_benchmark_task_by_id
+from evaluation.report import BenchmarkReportGenerator
 
 
 
@@ -707,6 +711,121 @@ async def get_orchestrator_history(directory_path: Optional[str] = None):
         "status": "success",
         "total": len(workflows),
         "workflows": [w.model_dump() for w in workflows]
+    }
+
+
+# =====================================================================
+# PHASE 15: OBSERVABILITY & AGENT TRACING
+# =====================================================================
+
+GLOBAL_OBSERVABILITY_MGR: Optional[ObservabilityManager] = None
+
+def get_observability_manager(directory_path: Optional[str] = None) -> ObservabilityManager:
+    global GLOBAL_OBSERVABILITY_MGR
+    root = directory_path or os.getcwd()
+    if GLOBAL_OBSERVABILITY_MGR is None or GLOBAL_OBSERVABILITY_MGR.root_dir != root:
+        GLOBAL_OBSERVABILITY_MGR = ObservabilityManager(root)
+    return GLOBAL_OBSERVABILITY_MGR
+
+
+@app.get("/api/observability/metrics")
+async def get_observability_metrics(directory_path: Optional[str] = None):
+    """Returns aggregated OpenTelemetry metrics, tool execution latency, and token costs."""
+    mgr = get_observability_manager(directory_path)
+    metrics = mgr.get_metrics()
+    return metrics.model_dump()
+
+
+@app.get("/api/observability/traces")
+async def list_observability_traces(directory_path: Optional[str] = None):
+    """Returns all recorded multi-agent workflow traces."""
+    mgr = get_observability_manager(directory_path)
+    traces = mgr.list_traces()
+    return {
+        "status": "success",
+        "total": len(traces),
+        "traces": [t.model_dump() for t in traces]
+    }
+
+
+@app.get("/api/observability/traces/{trace_id}")
+async def get_observability_trace_detail(trace_id: str, directory_path: Optional[str] = None):
+    """Returns granular spans and tool calls for a specific agent trace."""
+    mgr = get_observability_manager(directory_path)
+    trace = mgr.get_trace(trace_id)
+    if not trace:
+        raise HTTPException(status_code=404, detail="Trace not found.")
+    return trace.model_dump()
+
+
+# =====================================================================
+# PHASE 16: EVALUATION & BENCHMARKS
+# =====================================================================
+
+GLOBAL_EVALUATOR: Optional[SWEEvaluator] = None
+
+def get_evaluator(directory_path: Optional[str] = None) -> SWEEvaluator:
+    global GLOBAL_EVALUATOR
+    root = directory_path or os.getcwd()
+    if GLOBAL_EVALUATOR is None or GLOBAL_EVALUATOR.root_dir != root:
+        GLOBAL_EVALUATOR = SWEEvaluator(root)
+    return GLOBAL_EVALUATOR
+
+
+class BenchmarkRunRequest(BaseModel):
+    task_ids: Optional[List[str]] = None
+    directory_path: Optional[str] = None
+
+
+@app.get("/api/evaluation/benchmark/tasks")
+async def get_benchmark_tasks():
+    """Returns the 20 SWE Benchmark Tasks dataset."""
+    tasks = get_all_benchmark_tasks()
+    return {
+        "status": "success",
+        "total": len(tasks),
+        "tasks": [t.model_dump() for t in tasks]
+    }
+
+
+@app.get("/api/evaluation/benchmark/tasks/{task_id}")
+async def get_benchmark_task_detail(task_id: str):
+    """Returns details for a specific benchmark task."""
+    task = get_benchmark_task_by_id(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Benchmark task not found.")
+    return task.model_dump()
+
+
+@app.get("/api/evaluation/benchmark/scorecard")
+async def get_benchmark_scorecard(directory_path: Optional[str] = None):
+    """Returns the latest comparative scorecard (Agent v1 vs Agent v2)."""
+    evaluator = get_evaluator(directory_path)
+    scorecard = evaluator.get_latest_scorecard()
+    if not scorecard:
+        scorecard = evaluator.run_benchmark()
+    return scorecard.model_dump()
+
+
+@app.post("/api/evaluation/benchmark/run")
+async def run_benchmark_evaluation(req: BenchmarkRunRequest):
+    """Executes SWE benchmark suite comparing Agent v1 vs Agent v2."""
+    evaluator = get_evaluator(req.directory_path)
+    scorecard = evaluator.run_benchmark(task_ids=req.task_ids)
+    return scorecard.model_dump()
+
+
+@app.get("/api/evaluation/benchmark/report")
+async def get_benchmark_report_markdown(directory_path: Optional[str] = None):
+    """Returns a formatted Markdown benchmark report for display and export."""
+    evaluator = get_evaluator(directory_path)
+    scorecard = evaluator.get_latest_scorecard()
+    if not scorecard:
+        scorecard = evaluator.run_benchmark()
+    markdown = BenchmarkReportGenerator.generate_markdown_report(scorecard)
+    return {
+        "evaluation_id": scorecard.evaluation_id,
+        "markdown": markdown
     }
 
 
