@@ -100,7 +100,32 @@ class BrowserVerifyRequest(BaseModel):
 
 
 
+import re
+
+GITHUB_IDENTIFIER_REGEX = re.compile(r"^[a-zA-Z0-9_.-]+$")
+
+def validate_github_params(owner: str, repo: str, path: Optional[str] = None):
+    """Security validator for GitHub parameters to prevent SSRF, path traversal, and injection attacks."""
+    if not owner or not GITHUB_IDENTIFIER_REGEX.match(owner) or len(owner) > 100:
+        raise HTTPException(status_code=400, detail="Invalid GitHub repository owner parameter.")
+    if not repo or not GITHUB_IDENTIFIER_REGEX.match(repo) or len(repo) > 100:
+        raise HTTPException(status_code=400, detail="Invalid GitHub repository name parameter.")
+    if path:
+        if ".." in path or path.startswith("/") or "\0" in path:
+            raise HTTPException(status_code=400, detail="Path traversal characters are prohibited in repository path.")
+
+def sanitize_github_error_detail(text: str) -> str:
+    """Masks authorization tokens, PATs, and credentials from error responses."""
+    sanitized = re.sub(r"(Bearer\s+)[a-zA-Z0-9_\-\.]+", r"\1[REDACTED]", text, flags=re.IGNORECASE)
+    sanitized = re.sub(r"(ghp_[a-zA-Z0-9]{30,}|github_pat_[a-zA-Z0-9_]{30,})", "[REDACTED_TOKEN]", sanitized)
+    return sanitized
+
 async def make_github_request(endpoint: str, token: Optional[str] = None):
+    # Security: Ensure endpoint strictly stays within GitHub API namespace
+    clean_endpoint = endpoint.lstrip("/")
+    if "://" in clean_endpoint or clean_endpoint.startswith("//") or ".." in clean_endpoint:
+        raise HTTPException(status_code=400, detail="Invalid API endpoint specified.")
+
     headers = {
         "Accept": "application/vnd.github.v3+json",
         "User-Agent": "AI-Developer-OS/0.1.0"
@@ -110,14 +135,15 @@ async def make_github_request(endpoint: str, token: Optional[str] = None):
     if auth_token:
         headers["Authorization"] = f"Bearer {auth_token}"
 
-    url = f"{GITHUB_API_BASE}/{endpoint.lstrip('/')}"
+    url = f"{GITHUB_API_BASE}/{clean_endpoint}"
     
     async with httpx.AsyncClient() as client:
         res = await client.get(url, headers=headers)
         if res.status_code != 200:
+            safe_detail = sanitize_github_error_detail(res.text)
             raise HTTPException(
                 status_code=res.status_code, 
-                detail=f"GitHub API Error ({res.status_code}): {res.text}"
+                detail=f"GitHub API Error ({res.status_code}): {safe_detail}"
             )
         return res.json()
 
@@ -125,30 +151,36 @@ async def make_github_request(endpoint: str, token: Optional[str] = None):
 def read_root():
     return {"status": "ok", "service": "AI Developer OS Backend API"}
 
-# --- GITHUB INTEGRATION ENDPOINTS ---
+# --- GITHUB INTEGRATION ENDPOINTS (PHASE 1 / 2) ---
 
 @app.get("/api/github/repo")
 async def get_repository_info(owner: str = Query(...), repo: str = Query(...), token: Optional[str] = None):
+    validate_github_params(owner, repo)
     return await make_github_request(f"repos/{owner}/{repo}", token)
 
 @app.get("/api/github/branches")
 async def get_branches(owner: str = Query(...), repo: str = Query(...), token: Optional[str] = None):
+    validate_github_params(owner, repo)
     return await make_github_request(f"repos/{owner}/{repo}/branches", token)
 
 @app.get("/api/github/issues")
 async def get_issues(owner: str = Query(...), repo: str = Query(...), token: Optional[str] = None):
+    validate_github_params(owner, repo)
     return await make_github_request(f"repos/{owner}/{repo}/issues", token)
 
 @app.get("/api/github/commits")
 async def get_commits(owner: str = Query(...), repo: str = Query(...), token: Optional[str] = None):
+    validate_github_params(owner, repo)
     return await make_github_request(f"repos/{owner}/{repo}/commits", token)
 
 @app.get("/api/github/pulls")
 async def get_pull_requests(owner: str = Query(...), repo: str = Query(...), token: Optional[str] = None):
+    validate_github_params(owner, repo)
     return await make_github_request(f"repos/{owner}/{repo}/pulls", token)
 
 @app.get("/api/github/contents")
 async def get_repository_contents(owner: str = Query(...), repo: str = Query(...), path: str = Query(""), token: Optional[str] = None):
+    validate_github_params(owner, repo, path)
     endpoint = f"repos/{owner}/{repo}/contents/{path}" if path else f"repos/{owner}/{repo}/contents"
     return await make_github_request(endpoint, token)
 
