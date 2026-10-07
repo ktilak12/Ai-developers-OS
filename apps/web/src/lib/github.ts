@@ -49,12 +49,20 @@ export interface FileContent {
   download_url?: string;
 }
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+function sanitizeParam(input: string): string {
+  return encodeURIComponent(input.trim().replace(/[\x00-\x1F\x7F]/g, ""));
+}
+
 export async function fetchRepoInfo(owner: string, repo: string): Promise<RepoInfo> {
+  const safeOwner = sanitizeParam(owner);
+  const safeRepo = sanitizeParam(repo);
   try {
-    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
+    const res = await fetch(`${API_BASE}/api/github/repo?owner=${safeOwner}&repo=${safeRepo}`);
     if (res.ok) return await res.json();
   } catch (e) {
-    console.error(e);
+    console.error("Backend GitHub API request failed, falling back", e);
   }
   return {
     name: repo,
@@ -69,11 +77,13 @@ export async function fetchRepoInfo(owner: string, repo: string): Promise<RepoIn
 }
 
 export async function fetchBranches(owner: string, repo: string): Promise<BranchInfo[]> {
+  const safeOwner = sanitizeParam(owner);
+  const safeRepo = sanitizeParam(repo);
   try {
-    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/branches`);
+    const res = await fetch(`${API_BASE}/api/github/branches?owner=${safeOwner}&repo=${safeRepo}`);
     if (res.ok) return await res.json();
   } catch (e) {
-    console.error(e);
+    console.error("Backend branches API request failed, falling back", e);
   }
   return [
     { name: "main", commit: { sha: "8f3a92b" } },
@@ -83,14 +93,16 @@ export async function fetchBranches(owner: string, repo: string): Promise<Branch
 }
 
 export async function fetchIssues(owner: string, repo: string): Promise<IssueInfo[]> {
+  const safeOwner = sanitizeParam(owner);
+  const safeRepo = sanitizeParam(repo);
   try {
-    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/issues`);
+    const res = await fetch(`${API_BASE}/api/github/issues?owner=${safeOwner}&repo=${safeRepo}`);
     if (res.ok) {
       const data = await res.json();
-      return data.filter((item: any) => !item.pull_request);
+      return Array.isArray(data) ? data.filter((item: any) => !item.pull_request) : [];
     }
   } catch (e) {
-    console.error(e);
+    console.error("Backend issues API request failed, falling back", e);
   }
   return [
     { id: 124, number: 124, title: "Fix the checkout failure when a user applies an expired coupon", state: "open", user: { login: "alexdev", avatar_url: "https://github.com/identicons/alex.png" }, created_at: "2026-09-28T14:20:00Z", comments: 4 },
@@ -100,11 +112,13 @@ export async function fetchIssues(owner: string, repo: string): Promise<IssueInf
 }
 
 export async function fetchCommits(owner: string, repo: string): Promise<CommitInfo[]> {
+  const safeOwner = sanitizeParam(owner);
+  const safeRepo = sanitizeParam(repo);
   try {
-    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits`);
+    const res = await fetch(`${API_BASE}/api/github/commits?owner=${safeOwner}&repo=${safeRepo}`);
     if (res.ok) return await res.json();
   } catch (e) {
-    console.error(e);
+    console.error("Backend commits API request failed, falling back", e);
   }
   return [
     { sha: "8f3a92b", commit: { author: { name: "Alex Dev", date: "2026-09-29T16:30:00Z" }, message: "feat(auth): implement initial token validation middleware" } },
@@ -114,11 +128,13 @@ export async function fetchCommits(owner: string, repo: string): Promise<CommitI
 }
 
 export async function fetchPullRequests(owner: string, repo: string): Promise<PullRequestInfo[]> {
+  const safeOwner = sanitizeParam(owner);
+  const safeRepo = sanitizeParam(repo);
   try {
-    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls?state=all`);
+    const res = await fetch(`${API_BASE}/api/github/pulls?owner=${safeOwner}&repo=${safeRepo}`);
     if (res.ok) return await res.json();
   } catch (e) {
-    console.error(e);
+    console.error("Backend pulls API request failed, falling back", e);
   }
   return [
     { id: 88, number: 88, title: "feat: add Google OAuth support", state: "open", user: { login: "ai-coder-bot" }, created_at: "2026-09-29T15:00:00Z" },
@@ -128,11 +144,17 @@ export async function fetchPullRequests(owner: string, repo: string): Promise<Pu
 }
 
 export async function fetchRepoContents(owner: string, repo: string, path: string = ""): Promise<FileContent[]> {
+  const safeOwner = sanitizeParam(owner);
+  const safeRepo = sanitizeParam(repo);
+  const safePath = path ? sanitizeParam(path) : "";
   try {
-    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`);
+    const endpoint = safePath 
+      ? `${API_BASE}/api/github/contents?owner=${safeOwner}&repo=${safeRepo}&path=${safePath}`
+      : `${API_BASE}/api/github/contents?owner=${safeOwner}&repo=${safeRepo}`;
+    const res = await fetch(endpoint);
     if (res.ok) return await res.json();
   } catch (e) {
-    console.error(e);
+    console.error("Backend contents API request failed, falling back", e);
   }
   return [
     { name: "src", path: "src", type: "dir" },
