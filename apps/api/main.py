@@ -206,14 +206,27 @@ async def get_repository_contents(owner: str = Query(...), repo: str = Query(...
     endpoint = f"repos/{owner}/{repo}/contents/{path}" if path else f"repos/{owner}/{repo}/contents"
     return await make_github_request(endpoint, token)
 
+def validate_safe_directory(path: Optional[str]) -> str:
+    """Security validator for workspace and repository directory paths."""
+    target_dir = path or os.getcwd()
+    if "\0" in target_dir:
+        raise HTTPException(status_code=400, detail="Null bytes are prohibited in directory paths.")
+    try:
+        real_path = os.path.realpath(os.path.abspath(target_dir))
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid directory path specified.")
+
+    if not os.path.exists(real_path) or not os.path.isdir(real_path):
+        raise HTTPException(status_code=400, detail=f"Directory '{target_dir}' does not exist or is not a directory.")
+    
+    return real_path
+
 # --- PHASE 3: CODE INTELLIGENCE ENDPOINTS ---
 
 @app.post("/api/intelligence/index")
 def index_repository(req: IndexRequest):
     global GLOBAL_CODE_INDEX
-    target_dir = req.directory_path or os.getcwd()
-    if not os.path.exists(target_dir):
-        raise HTTPException(status_code=400, detail=f"Directory {target_dir} does not exist.")
+    target_dir = validate_safe_directory(req.directory_path)
     
     indexer = CodeIndexer(target_dir)
     GLOBAL_CODE_INDEX = indexer.scan_and_index()
@@ -230,14 +243,14 @@ def index_repository(req: IndexRequest):
     }
 
 @app.get("/api/intelligence/search")
-def search_code_intelligence(query: str = Query(...)):
+def search_code_intelligence(query: str = Query(..., min_length=1, max_length=200), limit: int = Query(50, ge=1, le=100)):
     global GLOBAL_CODE_INDEX
     if not GLOBAL_CODE_INDEX:
         indexer = CodeIndexer(os.getcwd())
         GLOBAL_CODE_INDEX = indexer.scan_and_index()
         
     engine = SymbolSearchEngine(GLOBAL_CODE_INDEX)
-    return engine.search(query)
+    return engine.search(query, max_results=limit)
 
 # --- PHASE 4: PROJECT RAG ENDPOINTS ---
 
