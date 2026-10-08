@@ -132,10 +132,10 @@ class PlannerAgent:
 
         # Step 6: Construct complete Plan response matching PDF specifications
         plan = {
-            "task_request": task_request,
-            "goal": f"Execute software update for: '{task_request}'",
+            "task_request": clean_request,
+            "goal": f"Execute software update for: '{clean_request}'",
             "requirements": [
-                f"Verify requirements for '{task_request}' against codebase architecture.",
+                f"Verify requirements for '{clean_request}' against codebase architecture.",
                 "Ensure zero breaking changes to active endpoints or component states.",
                 "Maintain dark theme design system styling (neutral-950 background, tailored glows).",
                 "Require explicit developer approval gate before code merging or PR creation."
