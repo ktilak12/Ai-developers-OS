@@ -6,13 +6,21 @@ class EmbeddingEngine:
     """
     Computes vector representations of code chunks using TF-IDF and term frequency
     embeddings for vector similarity matching.
+    Includes security guards against oversized payloads and CPU exhaustion.
     """
 
+    MAX_TEXT_LENGTH = 50000
+    MAX_TOKENS_COUNT = 5000
+
     def __init__(self, vector_dim: int = 128):
-        self.vector_dim = vector_dim
+        self.vector_dim = max(16, min(int(vector_dim), 1024))
 
     def _tokenize(self, text: str) -> List[str]:
-        return [token.lower() for token in re.findall(r'[a-zA-Z0-9_]+', text)]
+        if not text or not isinstance(text, str):
+            return []
+        bounded_text = text[:self.MAX_TEXT_LENGTH]
+        tokens = re.findall(r'[a-zA-Z0-9_]+', bounded_text)
+        return [t.lower() for t in tokens[:self.MAX_TOKENS_COUNT]]
 
     def generate_embedding(self, text: str) -> List[float]:
         tokens = self._tokenize(text)
@@ -36,4 +44,8 @@ class EmbeddingEngine:
     def cosine_similarity(vec1: List[float], vec2: List[float]) -> float:
         if not vec1 or not vec2 or len(vec1) != len(vec2):
             return 0.0
-        return sum(a * b for a, b in zip(vec1, vec2))
+        try:
+            return float(sum(a * b for a, b in zip(vec1, vec2)))
+        except Exception:
+            return 0.0
+
