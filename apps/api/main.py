@@ -299,7 +299,10 @@ def execute_code_modification(req: ModifyRequest):
     """
     Executes controlled code modification based on approved implementation plan and generates unified git diffs.
     """
-    target_dir = req.directory_path or os.getcwd()
+    target_dir = validate_safe_directory(req.directory_path)
+    if not isinstance(req.plan, dict) or not req.plan:
+        raise HTTPException(status_code=400, detail="Plan must be a non-empty object.")
+
     agent = CoderAgent(target_dir)
     return agent.execute_modification(req.plan)
 
@@ -308,7 +311,12 @@ def apply_code_modification(req: ApplyRequest):
     """
     Applies developer-approved code changes and unified diffs directly to the workspace files.
     """
-    target_dir = req.directory_path or os.getcwd()
+    target_dir = validate_safe_directory(req.directory_path)
+    if not req.changes or not isinstance(req.changes, list):
+        raise HTTPException(status_code=400, detail="Changes must be a non-empty list.")
+    if len(req.changes) > 20:
+        raise HTTPException(status_code=400, detail="Changes list exceeds maximum limit of 20 items.")
+
     agent = CoderAgent(target_dir)
     return agent.apply_changes(req.changes)
 
