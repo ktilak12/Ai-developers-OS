@@ -257,7 +257,7 @@ def search_code_intelligence(query: str = Query(..., min_length=1, max_length=20
 @app.post("/api/rag/index")
 def index_project_rag(req: IndexRequest):
     global GLOBAL_RAG_PIPELINE
-    target_dir = req.directory_path or os.getcwd()
+    target_dir = validate_safe_directory(req.directory_path)
     GLOBAL_RAG_PIPELINE = ProjectRAGPipeline(target_dir)
     total_chunks = GLOBAL_RAG_PIPELINE.build_index()
     return {
@@ -266,7 +266,7 @@ def index_project_rag(req: IndexRequest):
     }
 
 @app.get("/api/rag/query")
-def query_project_rag(question: str = Query(...), top_k: int = Query(4)):
+def query_project_rag(question: str = Query(..., min_length=1, max_length=500), top_k: int = Query(4, ge=1, le=20)):
     global GLOBAL_RAG_PIPELINE
     if not GLOBAL_RAG_PIPELINE:
         GLOBAL_RAG_PIPELINE = ProjectRAGPipeline(os.getcwd())
