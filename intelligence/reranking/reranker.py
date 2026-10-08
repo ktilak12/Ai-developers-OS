@@ -1,20 +1,43 @@
+import re
 from typing import List, Dict, Any
 
 class Reranker:
     """
     Reranks candidate vector store results using exact symbol matching,
     filename relevance, and query term frequency scoring.
+    Includes security protections against malformed inputs and term explosion.
     """
 
+    MAX_QUERY_TERMS = 10
+    MAX_TERM_LENGTH = 50
+
     def rerank(self, query: str, candidate_chunks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        query_terms = [t.lower() for t in query.split() if len(t) > 2]
+        if not candidate_chunks or not isinstance(candidate_chunks, list):
+            return []
+
+        clean_query = re.sub(r"[\x00-\x1f\x7f-\x9f]", " ", str(query or "")).strip()
+        query_terms = [
+            t.lower()[:self.MAX_TERM_LENGTH]
+            for t in clean_query.split()
+            if len(t) > 2
+        ][:self.MAX_QUERY_TERMS]
+
         reranked = []
 
         for candidate in candidate_chunks:
-            chunk = candidate["chunk"]
-            base_score = candidate["score"]
-            text = chunk.get("text", "").lower()
-            file_path = chunk.get("file_path", "").lower()
+            if not isinstance(candidate, dict):
+                continue
+            chunk = candidate.get("chunk")
+            if not isinstance(chunk, dict):
+                continue
+
+            try:
+                base_score = float(candidate.get("score", 0.0))
+            except (ValueError, TypeError):
+                base_score = 0.0
+
+            text = str(chunk.get("text", "")).lower()
+            file_path = str(chunk.get("file_path", "")).lower()
 
             bonus = 0.0
             for term in query_terms:
@@ -32,3 +55,4 @@ class Reranker:
 
         reranked.sort(key=lambda x: x["final_score"], reverse=True)
         return reranked
+
