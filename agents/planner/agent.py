@@ -1,4 +1,5 @@
 import os
+import re
 from typing import Dict, Any, List
 from agents.planner.prompts import PLANNER_SYSTEM_PROMPT, PLANNER_USER_TEMPLATE
 from agents.planner.tools import PlannerTools
@@ -11,17 +12,25 @@ class PlannerAgent:
     """
     Planner Agent: Analyzes software requests and produces structured, context-aware implementation plans
     using Project RAG, Code Intelligence, and Project Memory (ADRs, preferences, architecture).
+    Includes security guards against prompt injection / DoS via task bounding and safe path resolution.
     """
 
+    MAX_TASK_LENGTH = 5000
+
     def __init__(self, root_dir: str):
-        self.root_dir = root_dir
-        self.tools = PlannerTools(root_dir)
-        self.rag = ProjectRAGPipeline(root_dir)
-        self.memory = ProjectMemoryManager(root_dir)
+        self.root_dir = os.path.realpath(os.path.abspath(root_dir))
+        self.tools = PlannerTools(self.root_dir)
+        self.rag = ProjectRAGPipeline(self.root_dir)
+        self.memory = ProjectMemoryManager(self.root_dir)
         
     def generate_plan(self, task_request: str) -> Dict[str, Any]:
+        # Sanitize task request input
+        clean_request = re.sub(r"[\x00-\x1f\x7f-\x9f]", " ", str(task_request or "")).strip()[:self.MAX_TASK_LENGTH]
+        if not clean_request:
+            clean_request = "Default implementation plan: Inspect repository structure and dependencies."
+
         # Step 1: Query RAG vector index for relevant code chunks
-        rag_res = self.rag.query(task_request, top_k=4)
+        rag_res = self.rag.query(clean_request, top_k=4)
         retrieved_files = rag_res.get("retrieved_files", [])
         results_count = rag_res.get("total_results", 0)
 
@@ -31,7 +40,7 @@ class PlannerAgent:
             indexer = CodeIndexer(self.root_dir)
             index_data = indexer.scan_and_index()
             search_engine = SymbolSearchEngine(index_data)
-            search_res = search_engine.search(task_request)
+            search_res = search_engine.search(clean_request)
             if isinstance(search_res, dict):
                 ast_symbols = (
                     search_res.get("matched_functions", []) +
@@ -44,7 +53,7 @@ class PlannerAgent:
             ast_symbols = []
 
         # Step 3: Inspect metadata for key affected files
-        primary_files = retrieved_files if retrieved_files else [
+        primary_files = [f for f in retrieved_files if ".." not in f and not f.startswith("/")] if retrieved_files else [
             "apps/web/src/app/login/page.tsx",
             "apps/api/main.py",
             "agents/coder/agent.py"
@@ -53,6 +62,7 @@ class PlannerAgent:
         affected_files_detailed = []
         for file_path in primary_files[:5]:
             meta = self.tools.get_file_metadata(file_path)
+
             action = "MODIFY" if meta.get("exists", False) else "CREATE"
             line_count = meta.get("line_count", 0)
             affected_files_detailed.append({
