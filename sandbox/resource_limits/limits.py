@@ -16,6 +16,12 @@ class ResourceLimits:
     read_only_rootfs: bool = False  # Container root filesystem
     tmpfs_size: str = "64m"         # Size of temporary in-memory write buffer
 
+    def __post_init__(self):
+        # Bound execution constraints
+        self.cpu_limit = max(0.1, min(float(self.cpu_limit), 8.0))
+        self.execution_timeout = max(1, min(int(self.execution_timeout), 300))
+        self.pids_limit = max(16, min(int(self.pids_limit), 512))
+
     def to_docker_run_args(self) -> list[str]:
         """Convert constraints into docker run CLI arguments."""
         args = [
@@ -44,3 +50,4 @@ class ResourceLimits:
         }
 
 DEFAULT_SANDBOX_LIMITS = ResourceLimits()
+

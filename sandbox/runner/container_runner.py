@@ -13,9 +13,14 @@ class DockerContainerRunner:
     3. Runs command with execution timeout
     4. Captures stdout/stderr and exit code
     5. Destroys container upon completion
+    Includes security guards against host secret environment leakage and workspace traversal.
     """
 
     IMAGE_NAME = "ai-developer-os/sandbox:latest"
+    SENSITIVE_ENV_KEYWORDS = [
+        "TOKEN", "KEY", "SECRET", "PASSWORD", "AUTH", "CREDENTIAL", "PRIVATE",
+        "AWS_", "GITHUB_", "OPENAI_", "ANTHROPIC_", "GEMINI_", "DATABASE_URL"
+    ]
 
     def __init__(
         self,
@@ -23,7 +28,7 @@ class DockerContainerRunner:
         limits: Optional[ResourceLimits] = None,
         policy: Optional[CommandSecurityPolicy] = None
     ):
-        self.workspace_dir = os.path.abspath(workspace_dir)
+        self.workspace_dir = os.path.realpath(os.path.abspath(workspace_dir))
         self.limits = limits or DEFAULT_SANDBOX_LIMITS
         self.policy = policy or DEFAULT_COMMAND_POLICY
         self.is_docker_available = self._check_docker()
@@ -40,6 +45,19 @@ class DockerContainerRunner:
             return res.returncode == 0
         except Exception:
             return False
+
+    def _get_sanitized_environment(self) -> Dict[str, str]:
+        """Filters out sensitive API keys, tokens, and secrets from child process environment."""
+        sanitized = {}
+        for key, val in os.environ.items():
+            upper_k = key.upper()
+            if any(bad in upper_k for bad in self.SENSITIVE_ENV_KEYWORDS):
+                continue
+            sanitized[key] = val
+
+        sanitized["CI"] = "true"
+        sanitized["NODE_ENV"] = "test"
+        return sanitized
 
     def run_command(self, command: str) -> Dict[str, Any]:
         """
@@ -119,11 +137,9 @@ class DockerContainerRunner:
             }
 
     def _run_in_local_sandbox(self, command: str, start_time: float) -> Dict[str, Any]:
-        """Fallback process execution inside isolated workspace when Docker is absent."""
+        """Fallback process execution inside isolated workspace with sanitized environment."""
         try:
-            env = os.environ.copy()
-            env["CI"] = "true"
-            env["NODE_ENV"] = "test"
+            env = self._get_sanitized_environment()
 
             proc = subprocess.run(
                 command,
@@ -168,3 +184,4 @@ class DockerContainerRunner:
                 "duration_seconds": duration,
                 "mode": "local_process_sandbox"
             }
+
