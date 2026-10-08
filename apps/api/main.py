@@ -282,7 +282,12 @@ def create_planner_plan(req: PlanRequest):
     Generate structured implementation plan using RAG context retrieval and AST code intelligence.
     Returns: goal, requirements, affected_files_detailed, structured_steps, risk_matrix, testing_requirements, and retrieved_context_summary.
     """
-    target_dir = req.directory_path or os.getcwd()
+    target_dir = validate_safe_directory(req.directory_path)
+    if not req.task_request or not req.task_request.strip():
+        raise HTTPException(status_code=400, detail="task_request cannot be empty.")
+    if len(req.task_request) > 5000:
+        raise HTTPException(status_code=400, detail="task_request exceeds maximum allowed length of 5000 characters.")
+
     agent = PlannerAgent(target_dir)
     return agent.generate_plan(req.task_request)
 
