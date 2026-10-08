@@ -328,8 +328,17 @@ def execute_sandbox_command(req: SandboxExecuteRequest):
     """
     Executes command inside isolated Docker container with strict CPU/memory limits & command security policy.
     """
-    target_dir = req.directory_path or os.getcwd()
-    executor = SandboxExecutor(target_dir)
+    target_dir = validate_safe_directory(req.directory_path)
+    if not req.command or not req.command.strip():
+        raise HTTPException(status_code=400, detail="Command cannot be empty.")
+    if len(req.command) > 500:
+        raise HTTPException(status_code=400, detail="Command exceeds maximum length of 500 characters.")
+    if "\0" in req.command:
+        raise HTTPException(status_code=400, detail="Null bytes are prohibited in command.")
+
+    timeout_val = max(1, min(req.timeout or 60, 300))
+    limits = ResourceLimits(execution_timeout=timeout_val)
+    executor = SandboxExecutor(target_dir, limits=limits)
     return executor.execute(req.command)
 
 @app.get("/api/sandbox/status")
@@ -337,7 +346,7 @@ def get_sandbox_status(directory_path: Optional[str] = None):
     """
     Returns Docker sandbox health, daemon status, resource limits, and allowed command prefixes.
     """
-    target_dir = directory_path or os.getcwd()
+    target_dir = validate_safe_directory(directory_path)
     executor = SandboxExecutor(target_dir)
     return executor.get_status()
 
