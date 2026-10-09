@@ -358,7 +358,7 @@ def validate_tests_in_sandbox(req: TestValidateRequest):
     """
     Executes automated tests in Docker Sandbox, parses results, and performs AI failure analysis if failed.
     """
-    target_dir = req.directory_path or os.getcwd()
+    target_dir = validate_safe_directory(req.directory_path)
     agent = TestingAgent(target_dir)
     return agent.validate_code(req.command or "npm test")
 
@@ -367,7 +367,7 @@ def run_test_and_fix_loop(req: TestLoopRequest):
     """
     Runs autonomous Coder -> Sandbox -> Tests -> Testing Agent -> Fix loop (bounded by MAX_ITERATIONS = 3).
     """
-    target_dir = req.directory_path or os.getcwd()
+    target_dir = validate_safe_directory(req.directory_path)
     agent = TestingAgent(target_dir)
     return agent.run_autonomous_loop(req.task_request, req.command or "npm test")
 
