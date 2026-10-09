@@ -22,6 +22,14 @@ class OpenPageTool(BaseMCPTool):
         )
 
     def execute(self, url: str = "") -> MCPToolResponse:
+        from urllib.parse import urlparse
+        if not url or not isinstance(url, str):
+            return MCPToolResponse(success=False, error="URL must be a non-empty string.", server=self.server, tool_name=self.name)
+        parsed = urlparse(url)
+        if parsed.scheme.lower() not in ("http", "https"):
+            return MCPToolResponse(success=False, error=f"Invalid URL protocol '{parsed.scheme}'. Only http and https are allowed.", server=self.server, tool_name=self.name)
+        if parsed.hostname in ("169.254.169.254", "metadata.google.internal"):
+            return MCPToolResponse(success=False, error="Access to cloud metadata IP is prohibited.", server=self.server, tool_name=self.name)
         res = self.tools.open_page(url)
         return MCPToolResponse(success=True, data=res, server=self.server, tool_name=self.name)
 
