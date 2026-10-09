@@ -1,4 +1,4 @@
-﻿import os
+import os
 import shutil
 import tempfile
 import pytest
@@ -130,3 +130,38 @@ def test_testing_agent_autonomous_loop_respects_max_iterations():
         assert result["status"] in ("success", "max_iterations_reached")
     finally:
         shutil.rmtree(temp_dir)
+
+
+def test_tester_validate_endpoint_rejects_oversized_command():
+    res = client.post("/api/agents/tester/validate", json={
+        "command": "npm test " + "x" * 501
+    })
+    assert res.status_code == 400
+    assert "exceeds maximum length" in res.json()["detail"]
+
+
+def test_tester_validate_endpoint_rejects_null_byte_command():
+    res = client.post("/api/agents/tester/validate", json={
+        "command": "npm test\0malicious"
+    })
+    assert res.status_code == 400
+    assert "Null bytes are prohibited" in res.json()["detail"]
+
+
+def test_tester_loop_endpoint_rejects_empty_task_request():
+    res = client.post("/api/agents/tester/loop", json={
+        "task_request": "   ",
+        "command": "npm test"
+    })
+    assert res.status_code == 400
+    assert "cannot be empty" in res.json()["detail"]
+
+
+def test_tester_loop_endpoint_rejects_oversized_task_request():
+    res = client.post("/api/agents/tester/loop", json={
+        "task_request": "fix " * 600,
+        "command": "npm test"
+    })
+    assert res.status_code == 400
+    assert "exceeds maximum length" in res.json()["detail"]
+
