@@ -484,11 +484,27 @@ def verify_browser_journey(req: BrowserVerifyRequest):
     """
     Executes an autonomous end-to-end (E2E) browser verification journey and captures screenshot artifacts.
     """
-    target_dir = req.directory_path or os.getcwd()
+    target_dir = validate_safe_directory(req.directory_path)
+    from urllib.parse import urlparse
+    start_url = req.start_url or "http://localhost:3000/login"
+    parsed = urlparse(start_url)
+    if parsed.scheme.lower() not in ("http", "https"):
+        raise HTTPException(status_code=400, detail=f"Invalid URL scheme '{parsed.scheme}'. Only http and https are allowed.")
+    if parsed.hostname in ("169.254.169.254", "metadata.google.internal"):
+        raise HTTPException(status_code=400, detail="Access to cloud metadata IP is prohibited.")
+
+    if req.task_name and len(req.task_name) > 200:
+        raise HTTPException(status_code=400, detail="Task name exceeds maximum length of 200 characters.")
+    if req.steps is not None:
+        if not isinstance(req.steps, list):
+            raise HTTPException(status_code=400, detail="Steps must be a list.")
+        if len(req.steps) > 50:
+            raise HTTPException(status_code=400, detail="Steps list exceeds maximum limit of 50 items.")
+
     agent = BrowserAgent(target_dir)
     return agent.verify_flow(
         task_name=req.task_name or "Verify login flow",
-        start_url=req.start_url or "http://localhost:3000/login",
+        start_url=start_url,
         steps=req.steps
     )
 
