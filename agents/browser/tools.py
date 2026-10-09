@@ -18,6 +18,15 @@ class BrowserTools:
 
     def open_page(self, url: str) -> Dict[str, Any]:
         """Navigates to a target URL."""
+        from urllib.parse import urlparse
+        if not url or not isinstance(url, str):
+            return {"status": "error", "message": "URL must be a non-empty string.", "url": str(url)}
+        parsed = urlparse(url)
+        if parsed.scheme.lower() not in ("http", "https"):
+            return {"status": "error", "message": f"Invalid URL scheme '{parsed.scheme}'. Only http and https are allowed.", "url": url}
+        if parsed.hostname in ("169.254.169.254", "metadata.google.internal"):
+            return {"status": "error", "message": "Access to cloud metadata IP is prohibited.", "url": url}
+
         self.current_url = url
         self.history.append({"action": "navigate", "url": url, "timestamp": time.time()})
         return {
@@ -49,8 +58,10 @@ class BrowserTools:
 
     def capture_screenshot(self, name: str = "screenshot") -> Dict[str, Any]:
         """Captures a snapshot artifact of the active page view."""
+        safe_name = "".join(c for c in str(name) if c.isalnum() or c in ("-", "_")) or "screenshot"
+        safe_name = safe_name[:100]
         timestamp = int(time.time())
-        filename = f"{name}_{timestamp}.png"
+        filename = f"{safe_name}_{timestamp}.png"
         rel_path = f"artifacts/screenshots/{filename}"
         
         return {
