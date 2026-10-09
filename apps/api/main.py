@@ -522,7 +522,7 @@ class BlastRadiusRequest(BaseModel):
 @app.post("/api/intelligence/graph/build")
 async def build_code_knowledge_graph(req: GraphBuildRequest = GraphBuildRequest()):
     global GLOBAL_GRAPH_STORE
-    target_dir = req.directory_path or os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+    target_dir = validate_safe_directory(req.directory_path) if req.directory_path else os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
     builder = CodeGraphBuilder(root_dir=target_dir)
     graph_data = builder.build_from_directory()
     GLOBAL_GRAPH_STORE = KnowledgeGraphStore(graph_data)
@@ -563,6 +563,13 @@ async def get_graph_overview():
 @app.post("/api/intelligence/graph/blast-radius")
 async def calculate_blast_radius(req: BlastRadiusRequest):
     global GLOBAL_GRAPH_STORE
+    if not req.target_symbol or not req.target_symbol.strip():
+        raise HTTPException(status_code=400, detail="Target symbol cannot be empty.")
+    if len(req.target_symbol) > 200:
+        raise HTTPException(status_code=400, detail="Target symbol exceeds maximum length of 200 characters.")
+    if "\0" in req.target_symbol:
+        raise HTTPException(status_code=400, detail="Null bytes are prohibited in target symbol.")
+
     if not GLOBAL_GRAPH_STORE:
         target_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
         builder = CodeGraphBuilder(root_dir=target_dir)
@@ -575,6 +582,13 @@ async def calculate_blast_radius(req: BlastRadiusRequest):
 @app.get("/api/intelligence/graph/symbol/{symbol_name}")
 async def get_symbol_graph_context(symbol_name: str):
     global GLOBAL_GRAPH_STORE
+    if not symbol_name or not symbol_name.strip():
+        raise HTTPException(status_code=400, detail="Symbol name cannot be empty.")
+    if len(symbol_name) > 200:
+        raise HTTPException(status_code=400, detail="Symbol name exceeds maximum length of 200 characters.")
+    if "\0" in symbol_name:
+        raise HTTPException(status_code=400, detail="Null bytes are prohibited in symbol name.")
+
     if not GLOBAL_GRAPH_STORE:
         target_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
         builder = CodeGraphBuilder(root_dir=target_dir)
