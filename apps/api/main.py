@@ -437,7 +437,7 @@ def list_mcp_tools(directory_path: Optional[str] = None):
     """
     Returns all registered Model Context Protocol (MCP) tools and input schemas.
     """
-    target_dir = directory_path or os.getcwd()
+    target_dir = validate_safe_directory(directory_path)
     registry = get_mcp_registry(target_dir)
     return {
         "status": "success",
@@ -450,7 +450,7 @@ def list_mcp_servers(directory_path: Optional[str] = None):
     """
     Returns all active MCP servers and registered tool counts.
     """
-    target_dir = directory_path or os.getcwd()
+    target_dir = validate_safe_directory(directory_path)
     registry = get_mcp_registry(target_dir)
     return {
         "status": "success",
@@ -462,7 +462,16 @@ def call_mcp_tool(req: MCPCallRequest):
     """
     Invokes an MCP tool using standard JSON-RPC envelope arguments.
     """
-    target_dir = req.directory_path or os.getcwd()
+    target_dir = validate_safe_directory(req.directory_path)
+    if not req.tool_name or not req.tool_name.strip():
+        raise HTTPException(status_code=400, detail="Tool name cannot be empty.")
+    if len(req.tool_name) > 64:
+        raise HTTPException(status_code=400, detail="Tool name exceeds maximum length of 64 characters.")
+    if "\0" in req.tool_name:
+        raise HTTPException(status_code=400, detail="Null bytes are prohibited in tool name.")
+    if req.arguments is not None and not isinstance(req.arguments, dict):
+        raise HTTPException(status_code=400, detail="Arguments must be an object dictionary.")
+
     registry = get_mcp_registry(target_dir)
     res = registry.call_tool(req.tool_name, req.arguments or {})
     return res.to_dict()
