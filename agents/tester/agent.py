@@ -21,6 +21,12 @@ class TestingAgent:
         """
         Executes tests inside Docker sandbox and performs AI failure analysis if any failures occur.
         """
+        if not test_command or not isinstance(test_command, str):
+            test_command = "npm test"
+        test_command = test_command.strip()[:500]
+        if "\0" in test_command:
+            test_command = test_command.replace("\0", "")
+
         raw_result = self.tools.execute_test(test_command)
         exit_code = raw_result.get("exit_code", 1)
         stdout = raw_result.get("stdout", "")
@@ -89,6 +95,12 @@ class TestingAgent:
         Executes autonomous Coder -> Sandbox -> Tests -> Testing Agent -> Fix loop
         bounded by MAX_ITERATIONS = 3.
         """
+        if not task_request or not isinstance(task_request, str) or not task_request.strip():
+            task_request = "Run and verify test suite"
+        task_request = task_request.strip()[:2000]
+        if "\0" in task_request:
+            task_request = task_request.replace("\0", "")
+
         iterations = []
         is_resolved = False
 
