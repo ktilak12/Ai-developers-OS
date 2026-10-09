@@ -891,7 +891,7 @@ GLOBAL_OBSERVABILITY_MGR: Optional[ObservabilityManager] = None
 
 def get_observability_manager(directory_path: Optional[str] = None) -> ObservabilityManager:
     global GLOBAL_OBSERVABILITY_MGR
-    root = directory_path or os.getcwd()
+    root = validate_safe_directory(directory_path) if directory_path else os.getcwd()
     if GLOBAL_OBSERVABILITY_MGR is None or GLOBAL_OBSERVABILITY_MGR.root_dir != root:
         GLOBAL_OBSERVABILITY_MGR = ObservabilityManager(root)
     return GLOBAL_OBSERVABILITY_MGR
@@ -935,7 +935,7 @@ GLOBAL_EVALUATOR: Optional[SWEEvaluator] = None
 
 def get_evaluator(directory_path: Optional[str] = None) -> SWEEvaluator:
     global GLOBAL_EVALUATOR
-    root = directory_path or os.getcwd()
+    root = validate_safe_directory(directory_path) if directory_path else os.getcwd()
     if GLOBAL_EVALUATOR is None or GLOBAL_EVALUATOR.root_dir != root:
         GLOBAL_EVALUATOR = SWEEvaluator(root)
     return GLOBAL_EVALUATOR
@@ -979,6 +979,15 @@ async def get_benchmark_scorecard(directory_path: Optional[str] = None):
 @app.post("/api/evaluation/benchmark/run")
 async def run_benchmark_evaluation(req: BenchmarkRunRequest):
     """Executes SWE benchmark suite comparing Agent v1 vs Agent v2."""
+    if req.task_ids is not None:
+        if not isinstance(req.task_ids, list):
+            raise HTTPException(status_code=400, detail="Task IDs must be a list.")
+        if len(req.task_ids) > 50:
+            raise HTTPException(status_code=400, detail="Task IDs list exceeds maximum limit of 50 items.")
+        for tid in req.task_ids:
+            if not isinstance(tid, str) or "\0" in tid or len(tid) > 64:
+                raise HTTPException(status_code=400, detail="Invalid task ID format.")
+
     evaluator = get_evaluator(req.directory_path)
     scorecard = evaluator.run_benchmark(task_ids=req.task_ids)
     return scorecard.model_dump()
