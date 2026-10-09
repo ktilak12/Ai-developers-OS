@@ -23,6 +23,13 @@ class RunContainerCommandTool(BaseMCPTool):
         )
 
     def execute(self, command: str = "") -> MCPToolResponse:
+        if not command or not isinstance(command, str) or not command.strip():
+            return MCPToolResponse(success=False, error="Command cannot be empty.", server=self.server, tool_name=self.name)
+        if len(command) > 500:
+            return MCPToolResponse(success=False, error="Command exceeds maximum length of 500 characters.", server=self.server, tool_name=self.name)
+        if "\0" in command:
+            return MCPToolResponse(success=False, error="Null bytes are prohibited in command.", server=self.server, tool_name=self.name)
+
         res = self.executor.execute(command)
         return MCPToolResponse(
             success=res.get("exit_code") == 0,
