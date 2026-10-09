@@ -606,7 +606,7 @@ GLOBAL_MEMORY_MANAGER: Optional[ProjectMemoryManager] = None
 
 def get_memory_manager(directory_path: Optional[str] = None) -> ProjectMemoryManager:
     global GLOBAL_MEMORY_MANAGER
-    target_dir = directory_path or os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+    target_dir = validate_safe_directory(directory_path) if directory_path else os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
     if not GLOBAL_MEMORY_MANAGER or GLOBAL_MEMORY_MANAGER.root_dir != target_dir:
         GLOBAL_MEMORY_MANAGER = ProjectMemoryManager(root_dir=target_dir)
     return GLOBAL_MEMORY_MANAGER
