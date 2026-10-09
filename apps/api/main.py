@@ -359,8 +359,13 @@ def validate_tests_in_sandbox(req: TestValidateRequest):
     Executes automated tests in Docker Sandbox, parses results, and performs AI failure analysis if failed.
     """
     target_dir = validate_safe_directory(req.directory_path)
+    cmd = req.command or "npm test"
+    if len(cmd) > 500:
+        raise HTTPException(status_code=400, detail="Command exceeds maximum length of 500 characters.")
+    if "\0" in cmd:
+        raise HTTPException(status_code=400, detail="Null bytes are prohibited in command.")
     agent = TestingAgent(target_dir)
-    return agent.validate_code(req.command or "npm test")
+    return agent.validate_code(cmd)
 
 @app.post("/api/agents/tester/loop")
 def run_test_and_fix_loop(req: TestLoopRequest):
@@ -368,8 +373,19 @@ def run_test_and_fix_loop(req: TestLoopRequest):
     Runs autonomous Coder -> Sandbox -> Tests -> Testing Agent -> Fix loop (bounded by MAX_ITERATIONS = 3).
     """
     target_dir = validate_safe_directory(req.directory_path)
+    if not req.task_request or not req.task_request.strip():
+        raise HTTPException(status_code=400, detail="Task request cannot be empty.")
+    if len(req.task_request) > 2000:
+        raise HTTPException(status_code=400, detail="Task request exceeds maximum length of 2000 characters.")
+    if "\0" in req.task_request:
+        raise HTTPException(status_code=400, detail="Null bytes are prohibited in task request.")
+    cmd = req.command or "npm test"
+    if len(cmd) > 500:
+        raise HTTPException(status_code=400, detail="Command exceeds maximum length of 500 characters.")
+    if "\0" in cmd:
+        raise HTTPException(status_code=400, detail="Null bytes are prohibited in command.")
     agent = TestingAgent(target_dir)
-    return agent.run_autonomous_loop(req.task_request, req.command or "npm test")
+    return agent.run_autonomous_loop(req.task_request, cmd)
 
 
 # --- PHASE 9: SECURITY AGENT ENDPOINTS ---
@@ -379,7 +395,20 @@ def scan_security_vulnerabilities(req: SecurityScanRequest):
     """
     Performs static security scan, secret detection, and code injection auditing.
     """
-    target_dir = req.directory_path or os.getcwd()
+    target_dir = validate_safe_directory(req.directory_path)
+    if req.changes is not None:
+        if not isinstance(req.changes, list):
+            raise HTTPException(status_code=400, detail="Changes must be a list.")
+        if len(req.changes) > 50:
+            raise HTTPException(status_code=400, detail="Changes list exceeds maximum limit of 50 items.")
+    if req.file_paths is not None:
+        if not isinstance(req.file_paths, list):
+            raise HTTPException(status_code=400, detail="File paths must be a list.")
+        if len(req.file_paths) > 50:
+            raise HTTPException(status_code=400, detail="File paths list exceeds maximum limit of 50 items.")
+        for fp in req.file_paths:
+            if not isinstance(fp, str) or "\0" in fp:
+                raise HTTPException(status_code=400, detail="Invalid path or null bytes prohibited in file paths.")
     agent = SecurityAgent(target_dir)
     if req.changes:
         return agent.scan_changes(req.changes)
@@ -390,7 +419,7 @@ def get_security_detection_rules(directory_path: Optional[str] = None):
     """
     Returns active security scanning rules and pattern categories.
     """
-    target_dir = directory_path or os.getcwd()
+    target_dir = validate_safe_directory(directory_path)
     agent = SecurityAgent(target_dir)
     return {
         "secret_patterns_count": len(agent.tools.SECRET_PATTERNS),
