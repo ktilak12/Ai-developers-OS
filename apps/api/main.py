@@ -801,7 +801,7 @@ GLOBAL_ORCHESTRATOR: Optional[MultiAgentOrchestrator] = None
 
 def get_orchestrator(directory_path: Optional[str] = None) -> MultiAgentOrchestrator:
     global GLOBAL_ORCHESTRATOR
-    target_dir = directory_path or os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+    target_dir = validate_safe_directory(directory_path) if directory_path else os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
     if not GLOBAL_ORCHESTRATOR or GLOBAL_ORCHESTRATOR.root_dir != target_dir:
         GLOBAL_ORCHESTRATOR = MultiAgentOrchestrator(root_dir=target_dir)
     return GLOBAL_ORCHESTRATOR
@@ -825,6 +825,18 @@ async def run_multi_agent_workflow(req: OrchestratorRunRequest):
     Executes the autonomous multi-agent pipeline:
     Planner -> Researcher -> Coder -> Sandbox/Tester -> Security -> Reviewer -> Human Approval Gate -> GitHub PR.
     """
+    if not req.task_request or not req.task_request.strip():
+        raise HTTPException(status_code=400, detail="Task request cannot be empty.")
+    if len(req.task_request) > 2000:
+        raise HTTPException(status_code=400, detail="Task request exceeds maximum length of 2000 characters.")
+    if "\0" in req.task_request:
+        raise HTTPException(status_code=400, detail="Null bytes are prohibited in task request.")
+    if req.test_command:
+        if len(req.test_command) > 500:
+            raise HTTPException(status_code=400, detail="Test command exceeds maximum length of 500 characters.")
+        if "\0" in req.test_command:
+            raise HTTPException(status_code=400, detail="Null bytes are prohibited in test command.")
+
     orch = get_orchestrator(req.directory_path)
     state = orch.execute_workflow(
         task_request=req.task_request,
