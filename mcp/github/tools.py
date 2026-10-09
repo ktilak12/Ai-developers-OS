@@ -34,6 +34,9 @@ class GetRepositoryTool(GitHubBaseTool):
         )
 
     def execute(self, owner: str = "", repo: str = "") -> MCPToolResponse:
+        import re
+        if not owner or not repo or not re.match(r"^[a-zA-Z0-9_\-\.]+$", owner) or not re.match(r"^[a-zA-Z0-9_\-\.]+$", repo):
+            return MCPToolResponse(success=False, error="Invalid owner or repository name specified.", server=self.server, tool_name=self.name)
         url = f"{GITHUB_API_BASE}/repos/{owner}/{repo}"
         try:
             with httpx.Client(timeout=10) as client:
@@ -76,6 +79,11 @@ class CreatePullRequestTool(GitHubBaseTool):
         )
 
     def execute(self, owner: str = "", repo: str = "", title: str = "", head: str = "", base: str = "main", body: str = "") -> MCPToolResponse:
+        import re
+        if not owner or not repo or not re.match(r"^[a-zA-Z0-9_\-\.]+$", owner) or not re.match(r"^[a-zA-Z0-9_\-\.]+$", repo):
+            return MCPToolResponse(success=False, error="Invalid owner or repository name specified.", server=self.server, tool_name=self.name)
+        if not title or len(title) > 200 or "\0" in title:
+            return MCPToolResponse(success=False, error="Invalid PR title specified.", server=self.server, tool_name=self.name)
         # Returns structured PR payload ready for developer approval or dispatch
         return MCPToolResponse(
             success=True,
