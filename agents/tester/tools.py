@@ -15,6 +15,25 @@ class TestingTools:
 
     def execute_test(self, command: str = "npm test") -> Dict[str, Any]:
         """Runs the specified test command inside the isolated sandbox."""
+        if not command or not isinstance(command, str):
+            command = "npm test"
+        command = command.strip()
+        if len(command) > 500:
+            return {
+                "exit_code": 1,
+                "stdout": "",
+                "stderr": "Security Error: Command exceeds maximum length of 500 characters.",
+                "duration_seconds": 0.0,
+                "passed": False
+            }
+        if "\0" in command:
+            return {
+                "exit_code": 1,
+                "stdout": "",
+                "stderr": "Security Error: Null bytes are prohibited in command.",
+                "duration_seconds": 0.0,
+                "passed": False
+            }
         return self.sandbox.execute(command)
 
     def run_type_check(self) -> Dict[str, Any]:
