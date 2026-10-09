@@ -62,7 +62,28 @@ class MCPRegistry:
             servers[tool.server] = servers.get(tool.server, 0) + 1
         return [{"server": s, "tools_count": c} for s, c in servers.items()]
 
-    def call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> MCPToolResponse:
+    def call_tool(self, tool_name: str, arguments: Optional[Dict[str, Any]] = None) -> MCPToolResponse:
+        if not tool_name or not isinstance(tool_name, str) or "\0" in tool_name:
+            return MCPToolResponse(
+                success=False,
+                error="MCP Error: Invalid or empty tool name specified.",
+                tool_name=str(tool_name)
+            )
+        if len(tool_name) > 64:
+            return MCPToolResponse(
+                success=False,
+                error="MCP Error: Tool name exceeds maximum allowed length of 64 characters.",
+                tool_name=tool_name[:64]
+            )
+        if arguments is None:
+            arguments = {}
+        if not isinstance(arguments, dict):
+            return MCPToolResponse(
+                success=False,
+                error="MCP Error: Tool arguments must be a dictionary.",
+                tool_name=tool_name
+            )
+
         tool = self.get_tool(tool_name)
         if not tool:
             return MCPToolResponse(
@@ -84,6 +105,7 @@ GLOBAL_MCP_REGISTRY: Optional[MCPRegistry] = None
 
 def get_mcp_registry(root_dir: str = ".") -> MCPRegistry:
     global GLOBAL_MCP_REGISTRY
-    if GLOBAL_MCP_REGISTRY is None:
-        GLOBAL_MCP_REGISTRY = MCPRegistry(root_dir)
+    abs_dir = os.path.abspath(root_dir)
+    if GLOBAL_MCP_REGISTRY is None or GLOBAL_MCP_REGISTRY.root_dir != abs_dir:
+        GLOBAL_MCP_REGISTRY = MCPRegistry(abs_dir)
     return GLOBAL_MCP_REGISTRY
