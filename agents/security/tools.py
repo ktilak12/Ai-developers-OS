@@ -37,11 +37,30 @@ class SecurityTools:
         ("Hardcoded Production Debug Mode", re.compile(r"""(?i)(DEBUG\s*=\s*True|app\.debug\s*=\s*True)"""), "LOW", "Ensure debug mode is controlled via environment variables.")
     ]
 
+    MAX_READ_BYTES: int = 1_000_000
+    MAX_CONTENT_CHARS: int = 500_000
+
     def __init__(self, root_dir: str):
-        self.root_dir = os.path.abspath(root_dir)
+        self.root_dir = os.path.realpath(os.path.abspath(root_dir))
+
+    def _resolve_safe_path(self, rel_path: str) -> Optional[str]:
+        """Resolves target path and enforces workspace jail to prevent path traversal."""
+        if not rel_path or not isinstance(rel_path, str) or "\0" in rel_path:
+            return None
+        try:
+            full_path = os.path.realpath(os.path.abspath(os.path.join(self.root_dir, rel_path)))
+            if os.path.commonpath([self.root_dir, full_path]) != self.root_dir:
+                return None
+            return full_path
+        except (ValueError, Exception):
+            return None
 
     def scan_content(self, file_path: str, content: str) -> List[Dict[str, Any]]:
         """Scans a single file's text content across all security detectors."""
+        if not content or not isinstance(content, str):
+            return []
+        if len(content) > self.MAX_CONTENT_CHARS:
+            content = content[:self.MAX_CONTENT_CHARS]
         findings = []
         lines = content.splitlines()
 
@@ -107,12 +126,14 @@ class SecurityTools:
         return findings
 
     def scan_file(self, rel_path: str) -> List[Dict[str, Any]]:
-        full_path = os.path.join(self.root_dir, rel_path)
-        if not os.path.exists(full_path):
+        safe_path = self._resolve_safe_path(rel_path)
+        if not safe_path or not os.path.exists(safe_path) or not os.path.isfile(safe_path):
             return []
         try:
-            with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
-                content = f.read()
+            if os.path.getsize(safe_path) > self.MAX_READ_BYTES:
+                return []
+            with open(safe_path, "r", encoding="utf-8", errors="ignore") as f:
+                content = f.read(self.MAX_READ_BYTES)
             return self.scan_content(rel_path, content)
         except Exception:
             return []
