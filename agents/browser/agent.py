@@ -23,6 +23,15 @@ class BrowserAgent:
         """
         Executes a sequence of browser actions, captures screenshots, and produces an E2E report.
         """
+        task_name = str(task_name).strip()[:200] if task_name else "Verify flow"
+        if "\0" in task_name:
+            task_name = task_name.replace("\0", "")
+        if not start_url or not isinstance(start_url, str):
+            start_url = "http://localhost:3000/login"
+        start_url = start_url.strip()[:1000]
+        if "\0" in start_url:
+            start_url = start_url.replace("\0", "")
+
         start_time = time.time()
         
         default_steps = [
@@ -33,7 +42,10 @@ class BrowserAgent:
             {"action": "screenshot", "name": "login_result", "description": "Capture post-login viewport screenshot"}
         ]
 
-        active_steps = steps or default_steps
+        if steps and isinstance(steps, list):
+            active_steps = steps[:50]
+        else:
+            active_steps = default_steps
         executed_steps = []
         all_passed = True
         screenshot_artifact = None
