@@ -22,18 +22,23 @@ class TaskMemoryStore:
         return self.records.get(task_id)
 
     def list_tasks(self, limit: int = 50, status: Optional[TaskStatus] = None) -> List[TaskHistoryRecord]:
+        safe_limit = max(1, min(limit, 10000)) if isinstance(limit, int) else 50
         tasks = list(self.records.values())
         if status:
             tasks = [t for t in tasks if t.status == status]
         tasks.sort(key=lambda x: x.timestamp, reverse=True)
-        return tasks[:limit]
+        return tasks[:safe_limit]
 
     def search_tasks(self, query: str) -> List[TaskHistoryRecord]:
+        if not query or not isinstance(query, str):
+            return []
         query_lower = query.lower()
         results = []
         for rec in self.records.values():
-            if (query_lower in rec.task_title.lower() or
+            if (query_lower in rec.id.lower() or
+                query_lower in rec.task_title.lower() or
                 query_lower in rec.task_request.lower() or
+                query_lower in rec.agent_name.lower() or
                 (rec.fix_summary and query_lower in rec.fix_summary.lower()) or
                 any(query_lower in f.lower() for f in rec.files_changed)):
                 results.append(rec)

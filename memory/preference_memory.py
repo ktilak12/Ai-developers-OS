@@ -27,11 +27,15 @@ class PreferenceMemoryStore:
         return list(self.records.values())
 
     def search_preferences(self, query: str) -> List[DeveloperPreferenceRecord]:
+        if not query or not isinstance(query, str):
+            return []
         query_lower = query.lower()
         results = []
         for rec in self.records.values():
-            if (query_lower in rec.key.lower() or
+            if (query_lower in rec.id.lower() or
+                query_lower in rec.key.lower() or
                 query_lower in rec.value.lower() or
-                query_lower in rec.description.lower()):
+                query_lower in rec.description.lower() or
+                query_lower in rec.category.value.lower()):
                 results.append(rec)
         return results

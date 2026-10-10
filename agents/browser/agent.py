@@ -51,6 +51,8 @@ class BrowserAgent:
         screenshot_artifact = None
 
         for idx, step in enumerate(active_steps, 1):
+            if not isinstance(step, dict):
+                step = {"action": "unknown", "description": str(step)}
             action = step.get("action")
             step_record = {
                 "step_number": idx,
@@ -62,23 +64,39 @@ class BrowserAgent:
             if action == "navigate":
                 res = self.tools.open_page(step.get("url", start_url))
                 step_record["result"] = res
+                if res.get("status") != "success":
+                    all_passed = False
             elif action == "type":
                 res = self.tools.type_text(step.get("selector", "input"), step.get("value", ""))
                 step_record["result"] = res
+                if res.get("status") != "success":
+                    all_passed = False
             elif action == "click":
                 res = self.tools.click_element(step.get("selector", "button"))
                 step_record["result"] = res
+                if res.get("status") != "success":
+                    all_passed = False
             elif action == "screenshot":
                 res = self.tools.capture_screenshot(step.get("name", "screenshot"))
                 step_record["result"] = res
-                screenshot_artifact = res.get("screenshot_file")
+                if res.get("status") != "success":
+                    all_passed = False
+                else:
+                    screenshot_artifact = res.get("screenshot_file")
             else:
-                step_record["result"] = {"status": "unknown_action"}
+                step_record["result"] = {"status": "error", "message": f"Unknown browser action '{action}'"}
+                all_passed = False
 
             executed_steps.append(step_record)
 
         duration = round(time.time() - start_time, 2)
         dom_summary = self.tools.get_dom_summary()
+
+        observation = (
+            f"Successfully executed E2E journey for '{task_name}'. All UI elements responded with HTTP 200 and zero client-side exceptions."
+            if all_passed else
+            f"E2E journey for '{task_name}' failed. One or more browser verification steps encountered errors."
+        )
 
         return {
             "status": "PASSED" if all_passed else "FAILED",
@@ -89,5 +107,5 @@ class BrowserAgent:
             "executed_steps": executed_steps,
             "screenshot_artifact": screenshot_artifact or "artifacts/screenshots/login_result.png",
             "dom_summary": dom_summary,
-            "observation": f"Successfully executed E2E journey for '{task_name}'. All UI elements responded with HTTP 200 and zero client-side exceptions."
+            "observation": observation
         }

@@ -32,8 +32,23 @@ class KnowledgeGraphStore:
         return self.nodes.get(node_id)
 
     def find_node_by_symbol(self, symbol_name: str) -> Optional[GraphNode]:
+        if not symbol_name or not isinstance(symbol_name, str):
+            return None
+        # 1. Exact node name match
         for node in self.nodes.values():
             if node.name == symbol_name:
+                return node
+        # 2. Node ID match
+        if symbol_name in self.nodes:
+            return self.nodes[symbol_name]
+        # 3. Method qualified match (e.g. Class.method matching method)
+        for node in self.nodes.values():
+            if node.name.endswith(f".{symbol_name}"):
+                return node
+        # 4. Case-insensitive match
+        symbol_lower = symbol_name.lower()
+        for node in self.nodes.values():
+            if node.name.lower() == symbol_lower:
                 return node
         return None
 
@@ -53,17 +68,21 @@ class KnowledgeGraphStore:
 
     def find_shortest_path(self, start_id: str, end_id: str) -> Optional[List[str]]:
         """Find the shortest directional dependency path between two symbols using BFS."""
-        if start_id not in self.nodes or end_id not in self.nodes:
+        s_node = self.nodes.get(start_id) or self.find_node_by_symbol(start_id)
+        e_node = self.nodes.get(end_id) or self.find_node_by_symbol(end_id)
+        if not s_node or not e_node:
             return None
+        s_id = s_node.id
+        e_id = e_node.id
             
-        queue = deque([[start_id]])
-        visited = {start_id}
+        queue = deque([[s_id]])
+        visited = {s_id}
 
         while queue:
             path = queue.popleft()
             curr = path[-1]
 
-            if curr == end_id:
+            if curr == e_id:
                 return path
 
             for edge in self.adj.get(curr, []):
@@ -78,6 +97,13 @@ class KnowledgeGraphStore:
         Calculates the blast radius (impact analysis) if a given symbol or file is changed.
         Traverses incoming dependency edges to identify all upstream callers & dependents.
         """
+        if not target_symbol_or_id or not isinstance(target_symbol_or_id, str):
+            return BlastRadiusResult(
+                target_symbol=str(target_symbol_or_id or "unknown"),
+                target_file="unknown",
+                impact_score=0.0,
+                risk_level="UNKNOWN"
+            )
         target_node = self.find_node_by_symbol(target_symbol_or_id) or self.get_node(target_symbol_or_id)
         
         if not target_node:

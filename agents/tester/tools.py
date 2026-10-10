@@ -9,6 +9,8 @@ class TestingTools:
     extract stack traces, and isolate failure points for the Coder Agent.
     """
 
+    __test__ = False
+
     def __init__(self, root_dir: str):
         self.root_dir = os.path.abspath(root_dir)
         self.sandbox = SandboxExecutor(self.root_dir)

@@ -33,12 +33,17 @@ class DecisionMemoryStore:
         return None
 
     def search_decisions(self, query: str) -> List[DecisionRecord]:
+        if not query or not isinstance(query, str):
+            return []
         query_lower = query.lower()
         results = []
         for rec in self.records.values():
-            if (query_lower in rec.title.lower() or
+            if (query_lower in rec.id.lower() or
+                query_lower in rec.title.lower() or
+                query_lower in rec.author.lower() or
                 query_lower in rec.context.lower() or
                 query_lower in rec.decision.lower() or
-                any(query_lower in alt.lower() for alt in rec.alternatives_considered)):
+                any(query_lower in alt.lower() for alt in rec.alternatives_considered) or
+                any(query_lower in cons.lower() for cons in rec.consequences)):
                 results.append(rec)
         return results

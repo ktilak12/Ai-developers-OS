@@ -86,3 +86,71 @@ def test_browser_agent_executes_valid_flow():
         assert "screenshot_artifact" in res
     finally:
         shutil.rmtree(temp_dir)
+
+
+def test_browser_agent_marks_failed_flow_when_step_errors():
+    temp_dir = tempfile.mkdtemp()
+    try:
+        agent = BrowserAgent(temp_dir)
+        # Passing an invalid protocol step should cause verify_flow to return FAILED
+        steps = [
+            {"action": "navigate", "url": "ftp://malicious.com"},
+            {"action": "click", "selector": "button"}
+        ]
+        res = agent.verify_flow(task_name="Failing Journey", start_url="ftp://malicious.com", steps=steps)
+        assert res["status"] == "FAILED"
+        assert "failed" in res["observation"].lower()
+    finally:
+        shutil.rmtree(temp_dir)
+
+
+def test_browser_verify_endpoint_rejects_null_bytes():
+    res1 = client.post("/api/agents/browser/verify", json={
+        "task_name": "Login\0Injection"
+    })
+    assert res1.status_code == 400
+    assert "Null bytes are prohibited" in res1.json()["detail"]
+
+    res2 = client.post("/api/agents/browser/verify", json={
+        "start_url": "http://localhost:3000/\0test"
+    })
+    assert res2.status_code == 400
+    assert "Null bytes are prohibited" in res2.json()["detail"]
+
+
+def test_browser_verify_endpoint_rejects_non_dict_steps():
+    res = client.post("/api/agents/browser/verify", json={
+        "steps": ["invalid_string_step"]
+    })
+    assert res.status_code in (400, 422)
+
+
+def test_browser_tools_handles_none_text_safely():
+    temp_dir = tempfile.mkdtemp()
+    try:
+        tools = BrowserTools(temp_dir)
+        res = tools.type_text("input#username", None)
+        assert res["status"] == "success"
+        assert res["characters_typed"] == 0
+    finally:
+        shutil.rmtree(temp_dir)
+
+
+def test_browser_tools_rejects_null_bytes_and_empty_selectors():
+    temp_dir = tempfile.mkdtemp()
+    try:
+        tools = BrowserTools(temp_dir)
+        res_url = tools.open_page("http://example.com/\0evil")
+        assert res_url["status"] == "error"
+        assert "Null bytes" in res_url["message"]
+
+        res_sel = tools.click_element("btn\0evil")
+        assert res_sel["status"] == "error"
+        assert "Null bytes" in res_sel["message"]
+
+        res_empty = tools.click_element("   ")
+        assert res_empty["status"] == "error"
+        assert "non-empty string" in res_empty["message"]
+    finally:
+        shutil.rmtree(temp_dir)
+

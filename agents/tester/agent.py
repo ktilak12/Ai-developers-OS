@@ -10,6 +10,7 @@ class TestingAgent:
     If tests fail, analyzes output and coordinates autonomous retry loops with CoderAgent (up to MAX_ITERATIONS = 3).
     """
 
+    __test__ = False
     MAX_ITERATIONS: int = 3  # Strict limit to prevent infinite agent loops
 
     def __init__(self, root_dir: str):

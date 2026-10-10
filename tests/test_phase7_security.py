@@ -138,3 +138,10 @@ def test_sandbox_api_endpoints_validation():
     data = res_status.json()
     assert "policy" in data
     assert data["policy"]["shell_injection_guards_active"] is True
+
+    # 6. /api/sandbox/execute valid call (verifies ResourceLimits instantiation & execution)
+    res_exec = client.post("/api/sandbox/execute", json={"command": "npm test", "timeout": 30})
+    assert res_exec.status_code == 200
+    exec_data = res_exec.json()
+    assert "status" in exec_data
+    assert "command" in exec_data

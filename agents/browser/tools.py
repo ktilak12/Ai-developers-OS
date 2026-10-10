@@ -21,6 +21,10 @@ class BrowserTools:
         from urllib.parse import urlparse
         if not url or not isinstance(url, str):
             return {"status": "error", "message": "URL must be a non-empty string.", "url": str(url)}
+        if "\0" in url:
+            return {"status": "error", "message": "Null bytes are prohibited in URL.", "url": ""}
+        if len(url) > 1000:
+            return {"status": "error", "message": "URL exceeds maximum length of 1000 characters.", "url": url[:100]}
         parsed = urlparse(url)
         if parsed.scheme.lower() not in ("http", "https"):
             return {"status": "error", "message": f"Invalid URL scheme '{parsed.scheme}'. Only http and https are allowed.", "url": url}
@@ -38,6 +42,13 @@ class BrowserTools:
 
     def click_element(self, selector: str) -> Dict[str, Any]:
         """Simulates clicking a DOM element matching selector."""
+        if not selector or not isinstance(selector, str) or not selector.strip():
+            return {"status": "error", "message": "Selector must be a non-empty string."}
+        if "\0" in selector:
+            return {"status": "error", "message": "Null bytes are prohibited in selector."}
+        if len(selector) > 500:
+            return {"status": "error", "message": "Selector exceeds maximum length of 500 characters."}
+
         self.history.append({"action": "click", "selector": selector, "timestamp": time.time()})
         return {
             "status": "success",
@@ -46,13 +57,24 @@ class BrowserTools:
             "message": f"Successfully clicked element '{selector}'."
         }
 
-    def type_text(self, selector: str, text: str) -> Dict[str, Any]:
+    def type_text(self, selector: str, text: Optional[str] = "") -> Dict[str, Any]:
         """Fills input element with specified text."""
-        self.history.append({"action": "type", "selector": selector, "text": "***" if "pass" in selector.lower() else text, "timestamp": time.time()})
+        if not selector or not isinstance(selector, str) or not selector.strip():
+            return {"status": "error", "message": "Selector must be a non-empty string."}
+        if "\0" in selector:
+            return {"status": "error", "message": "Null bytes are prohibited in selector."}
+        if len(selector) > 500:
+            return {"status": "error", "message": "Selector exceeds maximum length of 500 characters."}
+
+        safe_text = "" if text is None else str(text)
+        if "\0" in safe_text:
+            safe_text = safe_text.replace("\0", "")
+
+        self.history.append({"action": "type", "selector": selector, "text": "***" if "pass" in selector.lower() else safe_text, "timestamp": time.time()})
         return {
             "status": "success",
             "selector": selector,
-            "characters_typed": len(text),
+            "characters_typed": len(safe_text),
             "message": f"Entered text into '{selector}'."
         }
 
@@ -63,6 +85,12 @@ class BrowserTools:
         timestamp = int(time.time())
         filename = f"{safe_name}_{timestamp}.png"
         rel_path = f"artifacts/screenshots/{filename}"
+        full_path = os.path.join(self.screenshots_dir, filename)
+        try:
+            with open(full_path, "wb") as f:
+                f.write(b"")
+        except Exception:
+            pass
         
         return {
             "status": "success",

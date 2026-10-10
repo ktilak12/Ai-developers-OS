@@ -25,13 +25,18 @@ class ArchitectureMemoryStore:
         return list(self.records.values())
 
     def search_components(self, query: str) -> List[ArchitectureRecord]:
+        if not query or not isinstance(query, str):
+            return []
         query_lower = query.lower()
         results = []
         for rec in self.records.values():
-            if (query_lower in rec.component_name.lower() or 
+            if (query_lower in rec.id.lower() or
+                query_lower in rec.component_name.lower() or 
                 query_lower in rec.description.lower() or
                 any(query_lower in tech.lower() for tech in rec.technology_stack) or
-                any(query_lower in dep.lower() for dep in rec.dependencies)):
+                any(query_lower in dep.lower() for dep in rec.dependencies) or
+                any(query_lower in ep.lower() for ep in rec.entrypoints) or
+                any(query_lower in conv.lower() for conv in rec.conventions)):
                 results.append(rec)
         return results
 

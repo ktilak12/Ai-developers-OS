@@ -35,4 +35,6 @@ yarn-error.log*
 .observability/
 .evaluation/
 .pytest_cache/
+artifacts/
+
 

@@ -1,7 +1,7 @@
 import os
 import ast
 import re
-from typing import Dict, List, Set, Any, Tuple
+from typing import Dict, List, Set, Any, Tuple, Optional
 from intelligence.graph.models import NodeType, EdgeType, GraphNode, GraphEdge, KnowledgeGraphData
 
 class CodeGraphBuilder:
@@ -12,18 +12,25 @@ class CodeGraphBuilder:
     """
 
     def __init__(self, root_dir: str = "."):
-        self.root_dir = root_dir
+        self.root_dir = os.path.abspath(root_dir)
         self.nodes: Dict[str, GraphNode] = {}
         self.edges: List[GraphEdge] = []
         self._symbol_registry: Dict[str, str] = {} # Symbol Name -> Node ID
+        self._deferred_calls: List[Tuple[ast.AST, str, str, Optional[str]]] = [] # (func_ast, caller_id, rel_path, class_name)
+        self._deferred_bases: List[Tuple[str, List[ast.AST]]] = [] # (class_node_id, bases)
 
     def build_from_directory(self, target_dir: str = None) -> KnowledgeGraphData:
         """Traverse directory and build complete codebase knowledge graph."""
-        scan_dir = target_dir or self.root_dir
+        scan_dir = os.path.abspath(target_dir or self.root_dir)
+        self.nodes.clear()
+        self.edges.clear()
+        self._symbol_registry.clear()
+        self._deferred_calls.clear()
+        self._deferred_bases.clear()
         
-        # Step 1: Scan and create file & symbol nodes
+        # Step 1: Scan and create file & symbol nodes across all files
         for root, _, files in os.walk(scan_dir):
-            if any(ignored in root for ignored in [".git", "node_modules", ".next", "__pycache__", "venv", ".venv", "dist"]):
+            if any(ignored in root for ignored in [".git", "node_modules", ".next", "__pycache__", "venv", ".venv", "dist", ".pytest_cache"]):
                 continue
                 
             for file in files:
@@ -35,7 +42,17 @@ class CodeGraphBuilder:
                 elif file.endswith((".ts", ".tsx", ".js", ".jsx")):
                     self._parse_ts_file(file_path, rel_path)
 
-        # Step 2: Calculate in/out degree for all nodes
+        # Step 2: Resolve deferred inheritance and function calls (handles forward refs & cross-file calls)
+        for class_node_id, bases in self._deferred_bases:
+            for base in bases:
+                base_name = base.id if isinstance(base, ast.Name) else ""
+                if base_name and base_name in self._symbol_registry:
+                    self._add_edge(class_node_id, self._symbol_registry[base_name], EdgeType.INHERITS)
+
+        for func_ast, caller_id, rel_path, class_name in self._deferred_calls:
+            self._extract_function_calls(func_ast, caller_id, rel_path, class_name)
+
+        # Step 3: Calculate in/out degree for all nodes
         for edge in self.edges:
             if edge.source in self.nodes:
                 self.nodes[edge.source].outgoing_degree += 1
@@ -122,11 +139,9 @@ class CodeGraphBuilder:
                 self._symbol_registry[node.name] = class_node_id
                 self._add_edge(file_node_id, class_node_id, EdgeType.DEFINES)
 
-                # Inheritance edges
-                for base in node.bases:
-                    base_name = base.id if isinstance(base, ast.Name) else ""
-                    if base_name and base_name in self._symbol_registry:
-                        self._add_edge(class_node_id, self._symbol_registry[base_name], EdgeType.INHERITS)
+                # Defer inheritance edges to Pass 2 after all classes are registered
+                if node.bases:
+                    self._deferred_bases.append((class_node_id, list(node.bases)))
 
                 # Methods inside class
                 for item in node.body:
@@ -144,7 +159,7 @@ class CodeGraphBuilder:
                         )
                         self._symbol_registry[f"{node.name}.{item.name}"] = method_id
                         self._add_edge(class_node_id, method_id, EdgeType.DEFINES)
-                        self._extract_function_calls(item, method_id, rel_path)
+                        self._deferred_calls.append((item, method_id, rel_path, node.name))
 
             elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 func_id = f"func::{rel_path}::{node.name}"
@@ -167,9 +182,9 @@ class CodeGraphBuilder:
                 )
                 self._symbol_registry[node.name] = func_id
                 self._add_edge(file_node_id, func_id, EdgeType.EXPOSES if is_route else EdgeType.DEFINES)
-                self._extract_function_calls(node, func_id, rel_path)
+                self._deferred_calls.append((node, func_id, rel_path, None))
 
-    def _extract_function_calls(self, func_node: ast.AST, caller_node_id: str, rel_path: str):
+    def _extract_function_calls(self, func_node: ast.AST, caller_node_id: str, rel_path: str, class_name: Optional[str] = None):
         for sub in ast.walk(func_node):
             if isinstance(sub, ast.Call):
                 target_name = ""
@@ -178,8 +193,13 @@ class CodeGraphBuilder:
                 elif isinstance(sub.func, ast.Attribute):
                     target_name = sub.func.attr
                 
+                target_id = None
                 if target_name and target_name in self._symbol_registry:
                     target_id = self._symbol_registry[target_name]
+                elif class_name and target_name and f"{class_name}.{target_name}" in self._symbol_registry:
+                    target_id = self._symbol_registry[f"{class_name}.{target_name}"]
+
+                if target_id:
                     self._add_edge(caller_node_id, target_id, EdgeType.CALLS)
 
     def _parse_ts_file(self, full_path: str, rel_path: str):

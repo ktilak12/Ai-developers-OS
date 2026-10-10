@@ -20,8 +20,8 @@ class ProjectMemoryManager:
     """
 
     def __init__(self, root_dir: str, storage_path: Optional[str] = None):
-        self.root_dir = root_dir
-        self.storage_path = storage_path or os.path.join(root_dir, ".memory", "store.json")
+        self.root_dir = os.path.abspath(root_dir)
+        self.storage_path = os.path.abspath(storage_path) if storage_path else os.path.join(self.root_dir, ".memory", "store.json")
         
         self.architecture = ArchitectureMemoryStore()
         self.decisions = DecisionMemoryStore()
@@ -66,7 +66,7 @@ class ProjectMemoryManager:
         data = {
             "architecture": [rec.model_dump() for rec in self.architecture.list_all()],
             "decisions": [rec.model_dump() for rec in self.decisions.list_decisions()],
-            "tasks": [rec.model_dump() for rec in self.tasks.list_tasks(limit=1000)],
+            "tasks": [rec.model_dump() for rec in self.tasks.list_tasks(limit=max(1000, len(self.tasks.records)))],
             "preferences": [rec.model_dump() for rec in self.preferences.list_by_category()]
         }
         with open(self.storage_path, "w", encoding="utf-8") as f:
