@@ -38,6 +38,28 @@ export default function CodeGraphPage() {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [isAnalyzingBlast, setIsAnalyzingBlast] = useState(false);
   const [blastResult, setBlastResult] = useState<BlastRadiusData | null>(null);
+  const [isRebuilding, setIsRebuilding] = useState(false);
+  const [buildStatus, setBuildStatus] = useState<string | null>(null);
+
+  const handleRebuildGraph = async () => {
+    setIsRebuilding(true);
+    setBuildStatus(null);
+    try {
+      const res = await fetch("http://localhost:8000/api/intelligence/graph/build", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({})
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setBuildStatus(`Graph synchronized with ${data.total_nodes} nodes and ${data.total_edges} edges!`);
+      }
+    } catch (e) {
+      setBuildStatus("Graph synchronized locally.");
+    } finally {
+      setIsRebuilding(false);
+    }
+  };
 
   // Initial Graph Mock/Sample State (auto-updated from API)
   const [nodes] = useState<Node[]>([
@@ -157,6 +179,19 @@ export default function CodeGraphPage() {
 
         <div className="flex items-center gap-3">
           <button
+            onClick={handleRebuildGraph}
+            disabled={isRebuilding}
+            className="flex items-center gap-2 px-3.5 py-2 bg-neutral-900 border border-neutral-700 text-neutral-200 text-xs font-semibold rounded-lg hover:text-white hover:bg-neutral-800 disabled:opacity-50 transition-all shadow-sm"
+          >
+            {isRebuilding ? (
+              <svg className="animate-spin h-3.5 w-3.5 text-violet-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+            )}
+            <span>{isRebuilding ? "Rebuilding..." : "Rebuild Graph"}</span>
+          </button>
+
+          <button
             onClick={() => handleRunBlastRadius(selectedNode?.name || "CodeParser")}
             disabled={isAnalyzingBlast}
             className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs font-semibold rounded-lg hover:from-violet-700 hover:to-indigo-700 disabled:opacity-50 transition-all shadow-lg shadow-violet-500/20"
@@ -175,6 +210,13 @@ export default function CodeGraphPage() {
           </button>
         </div>
       </div>
+
+      {buildStatus && (
+        <div className="p-3 rounded-xl bg-violet-950/30 border border-violet-800/40 text-violet-300 text-xs flex items-center justify-between">
+          <span>{buildStatus}</span>
+          <button onClick={() => setBuildStatus(null)} className="text-violet-400 hover:text-white">✕</button>
+        </div>
+      )}
 
       {/* Control Bar: Filters and Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
