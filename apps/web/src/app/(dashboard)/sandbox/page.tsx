@@ -90,7 +90,7 @@ export default function DockerSandboxPage() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-3xl font-bold text-white tracking-tight">Docker Sandbox</h1>
-            <span className="inline-flex items-center rounded-full bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-400 border border-cyan-500/20">
+            <span className="inline-flex items-center rounded-full bg-neutral-900 px-3 py-1 text-xs font-mono text-neutral-300 border border-neutral-800">
               Phase 7 Active
             </span>
           </div>
@@ -101,7 +101,7 @@ export default function DockerSandboxPage() {
 
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-2 rounded-xl bg-neutral-900 border border-neutral-800 px-3.5 py-1.5 text-xs font-mono text-neutral-300">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
             Container Status: Ready
           </span>
         </div>
@@ -109,24 +109,24 @@ export default function DockerSandboxPage() {
 
       {/* Resource Constraints Pill Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-4 space-y-1">
+        <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4 space-y-1">
           <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">CPU Allocation</span>
           <p className="text-xl font-bold text-white">1.5 Cores</p>
           <span className="text-xs text-neutral-500 font-mono">--cpus=1.5</span>
         </div>
-        <div className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-4 space-y-1">
+        <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4 space-y-1">
           <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">Memory Ceiling</span>
           <p className="text-xl font-bold text-white">512 MB</p>
           <span className="text-xs text-neutral-500 font-mono">--memory=512m</span>
         </div>
-        <div className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-4 space-y-1">
+        <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4 space-y-1">
           <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">Execution Timeout</span>
           <p className="text-xl font-bold text-white">60 Seconds</p>
           <span className="text-xs text-neutral-500 font-mono">SIGKILL watchdog</span>
         </div>
-        <div className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-4 space-y-1">
+        <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4 space-y-1">
           <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">Security Isolation</span>
-          <p className="text-xl font-bold text-emerald-400">Non-Root UID</p>
+          <p className="text-xl font-bold text-white">Non-Root UID</p>
           <span className="text-xs text-neutral-500 font-mono">no-new-privileges</span>
         </div>
       </div>
@@ -140,9 +140,9 @@ export default function DockerSandboxPage() {
               value={command}
               onChange={(e) => setCommand(e.target.value)}
               placeholder="Enter allowed sandbox command (e.g. 'npm test', 'npm run build', 'pytest')"
-              className="w-full rounded-2xl border border-neutral-800 bg-neutral-900/80 px-6 py-4 pl-12 text-base text-white placeholder-neutral-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors shadow-xl font-mono text-sm"
+              className="w-full rounded-2xl border border-neutral-800 bg-neutral-950 px-6 py-4 pl-12 text-base text-white placeholder-neutral-500 focus:border-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-500 transition-colors shadow-sm font-mono text-sm"
             />
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400">
               <polyline points="4 17 10 11 4 5"/>
               <line x1="12" y1="19" x2="20" y2="19"/>
             </svg>
@@ -150,7 +150,7 @@ export default function DockerSandboxPage() {
           <button 
             type="submit"
             disabled={loading}
-            className="rounded-2xl bg-cyan-600 px-7 py-4 text-sm font-semibold text-white hover:bg-cyan-500 transition-colors shadow-lg shadow-cyan-950/40 flex items-center gap-2 shrink-0 disabled:opacity-50"
+            className="rounded-2xl bg-white px-7 py-4 text-sm font-semibold text-black hover:bg-neutral-200 transition-colors shadow-sm flex items-center gap-2 shrink-0 disabled:opacity-50"
           >
             {loading ? "Executing..." : "Run in Sandbox"}
           </button>
@@ -162,7 +162,7 @@ export default function DockerSandboxPage() {
             <button
               key={i}
               onClick={() => setCommand(preset)}
-              className="rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-1 font-mono text-neutral-300 hover:text-cyan-400 hover:border-cyan-500/40 transition-colors"
+              className="rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-1 font-mono text-neutral-300 hover:text-white hover:border-neutral-700 hover:bg-neutral-850 transition-colors"
             >
               {preset}
             </button>
@@ -174,30 +174,30 @@ export default function DockerSandboxPage() {
       <div className="flex items-center gap-2 border-b border-neutral-800 pb-2">
         <button
           onClick={() => setActiveTab("terminal")}
-          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
+          className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
             activeTab === "terminal"
-              ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30"
-              : "text-neutral-400 hover:text-white"
+              ? "bg-neutral-850 text-white border border-neutral-700 shadow-sm"
+              : "text-neutral-400 hover:text-white hover:bg-neutral-900/50"
           }`}
         >
           Execution Console
         </button>
         <button
           onClick={() => setActiveTab("policies")}
-          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
+          className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
             activeTab === "policies"
-              ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30"
-              : "text-neutral-400 hover:text-white"
+              ? "bg-neutral-850 text-white border border-neutral-700 shadow-sm"
+              : "text-neutral-400 hover:text-white hover:bg-neutral-900/50"
           }`}
         >
           Security Policies & Allowlist
         </button>
         <button
           onClick={() => setActiveTab("limits")}
-          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
+          className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
             activeTab === "limits"
-              ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30"
-              : "text-neutral-400 hover:text-white"
+              ? "bg-neutral-850 text-white border border-neutral-700 shadow-sm"
+              : "text-neutral-400 hover:text-white hover:bg-neutral-900/50"
           }`}
         >
           Docker Compose & Config
@@ -208,24 +208,21 @@ export default function DockerSandboxPage() {
       {activeTab === "terminal" && result && (
         <div className="space-y-4">
           {/* Execution Metric Bar */}
-          <div className="rounded-2xl border border-neutral-800 bg-neutral-900/70 p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <span className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-bold font-mono ${
-                result.exit_code === 0 
-                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" 
-                  : "bg-red-500/20 text-red-400 border border-red-500/30"
-              }`}>
+              <span className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-mono font-medium bg-neutral-900 text-neutral-300 border border-neutral-800">
+                <span className={`h-1.5 w-1.5 rounded-full ${result.exit_code === 0 ? "bg-emerald-500" : "bg-red-500"}`}></span>
                 Exit Code: {result.exit_code}
               </span>
               <span className="text-sm font-mono text-white font-semibold">{result.command}</span>
             </div>
 
             <div className="flex items-center gap-4 text-xs font-mono">
-              <span className="text-neutral-400">Duration: <span className="text-cyan-400 font-bold">{result.duration_seconds}s</span></span>
-              <span className="text-neutral-400">Mode: <span className="text-purple-400 font-semibold">{result.mode}</span></span>
+              <span className="text-neutral-400">Duration: <span className="text-white font-bold">{result.duration_seconds}s</span></span>
+              <span className="text-neutral-400">Mode: <span className="text-neutral-300 font-semibold">{result.mode}</span></span>
               {result.test_metrics && (
-                <span className="inline-flex items-center gap-1.5 text-emerald-400">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400"></span>
+                <span className="inline-flex items-center gap-1.5 text-neutral-300">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                   {result.test_metrics.passed} Passed / {result.test_metrics.failed} Failed
                 </span>
               )}
@@ -233,12 +230,12 @@ export default function DockerSandboxPage() {
           </div>
 
           {/* Terminal Console Box */}
-          <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-5 font-mono text-xs overflow-x-auto shadow-2xl leading-relaxed">
+          <div className="rounded-2xl border border-neutral-800 bg-black p-5 font-mono text-xs overflow-x-auto shadow-2xl leading-relaxed">
             <div className="flex items-center justify-between border-b border-neutral-800 pb-3 mb-4 text-neutral-500 text-xs">
               <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-red-500/60 inline-block"></span>
-                <span className="h-3 w-3 rounded-full bg-yellow-500/60 inline-block"></span>
-                <span className="h-3 w-3 rounded-full bg-emerald-500/60 inline-block"></span>
+                <span className="h-2.5 w-2.5 rounded-full bg-neutral-700 inline-block"></span>
+                <span className="h-2.5 w-2.5 rounded-full bg-neutral-700 inline-block"></span>
+                <span className="h-2.5 w-2.5 rounded-full bg-neutral-700 inline-block"></span>
                 <span className="ml-2 text-neutral-400">sandbox@ai-developer-os:/workspace$</span>
               </div>
               <span>Captured stdout / stderr</span>
@@ -249,7 +246,7 @@ export default function DockerSandboxPage() {
             )}
 
             {result.stderr && (
-              <pre className="text-amber-400 bg-amber-950/20 p-3 rounded-xl border border-amber-500/30 mt-3 whitespace-pre-wrap">
+              <pre className="text-neutral-300 bg-neutral-900/60 p-3 rounded-xl border border-neutral-800 mt-3 whitespace-pre-wrap">
                 {result.stderr}
               </pre>
             )}
@@ -263,10 +260,10 @@ export default function DockerSandboxPage() {
 
       {/* Tab: Security Policies */}
       {activeTab === "policies" && (
-        <div className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-6 space-y-6">
+        <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 space-y-6">
           <div>
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-3 text-emerald-400 flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <h3 className="text-sm font-semibold text-neutral-200 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-400"><polyline points="20 6 9 17 4 12"/></svg>
               Allowed Command Prefixes (Allowlist)
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 font-mono text-xs">
@@ -280,8 +277,8 @@ export default function DockerSandboxPage() {
                 "mvn test",
                 "git status / diff"
               ].map((cmd, i) => (
-                <div key={i} className="rounded-lg bg-neutral-950 p-2.5 text-neutral-300 border border-neutral-800 flex items-center gap-2">
-                  <span className="text-emerald-400">✓</span>
+                <div key={i} className="rounded-lg bg-neutral-900 p-2.5 text-neutral-300 border border-neutral-800 flex items-center gap-2">
+                  <span className="text-neutral-400">✓</span>
                   <span>{cmd}</span>
                 </div>
               ))}
@@ -289,8 +286,8 @@ export default function DockerSandboxPage() {
           </div>
 
           <div>
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-3 text-red-400 flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+            <h3 className="text-sm font-semibold text-neutral-200 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-500"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
               Blocked Dangerous Attack Vectors (Denylist)
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 font-mono text-xs">
@@ -302,8 +299,8 @@ export default function DockerSandboxPage() {
                 "sudo / su (Privilege Escalation)",
                 "docker run / exec (Container Escape)"
               ].map((pattern, i) => (
-                <div key={i} className="rounded-lg bg-neutral-950 p-2.5 text-neutral-400 border border-neutral-800 flex items-center gap-2">
-                  <span className="text-red-400 font-bold">✕</span>
+                <div key={i} className="rounded-lg bg-neutral-900 p-2.5 text-neutral-400 border border-neutral-800 flex items-center gap-2">
+                  <span className="text-neutral-500 font-bold">✕</span>
                   <span>{pattern}</span>
                 </div>
               ))}
