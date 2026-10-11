@@ -23,3 +23,10 @@ The AI cannot automatically perform critical actions without human consent.
 **Required Approvals:**
 - Creating a PR requires developer review of the diff.
 - Deploying to production requires explicit human approval.
+
+## Autonomous Agent Safeguards (Phases 14-16)
+- **Multi-Agent Human Gate:** Routine `auto_approve` is automatically revoked if the Security Agent detects `CRITICAL`/`HIGH` vulnerabilities, test failures, or review rejections.
+- **Trace Credential Redaction:** Passwords, API keys, Bearer tokens, and Authorization headers are automatically redacted from observability traces.
+- **Path Traversal Defenses:** Storage and evaluation state locations are verified against canonical project realpaths.
+- **Input Sanitization:** Benchmark IDs and reports enforce strict regex validation and HTML escaping to prevent injection attacks.
+
