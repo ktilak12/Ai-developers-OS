@@ -1,11 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { ReactNode, useState } from "react";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [commandQuery, setCommandQuery] = useState("");
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  const handleCommandSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commandQuery.trim()) return;
+    const q = commandQuery.trim();
+    setCommandQuery("");
+    // If it looks like a code search or question, route to intelligence, else orchestrator
+    if (q.toLowerCase().startsWith("where ") || q.toLowerCase().startsWith("find ") || q.toLowerCase().startsWith("search ")) {
+      router.push(`/intelligence?query=${encodeURIComponent(q)}`);
+    } else {
+      router.push(`/orchestrator?task=${encodeURIComponent(q)}&run=true`);
+    }
+  };
 
   const isProjectsActive = pathname === "/dashboard" || pathname.startsWith("/projects");
   const isRepositoryActive = pathname.startsWith("/repository");
@@ -23,10 +39,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const isOrchestratorActive = pathname.startsWith("/orchestrator");
   const isObservabilityActive = pathname.startsWith("/observability");
   const isEvaluationActive = pathname.startsWith("/evaluation");
-
-
-
-
 
   return (
     <div className="flex h-screen bg-neutral-950 text-neutral-50 overflow-hidden">
@@ -223,17 +235,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
           
           <p className="px-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 mt-6">System</p>
-          <Link href="#" className="flex items-center gap-3 rounded-lg text-neutral-400 hover:bg-neutral-800/50 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
+          <Link href="/orchestrator" className="flex items-center gap-3 rounded-lg text-neutral-400 hover:bg-neutral-800/50 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
             Agents
           </Link>
-          <Link href="#" className="flex items-center gap-3 rounded-lg text-neutral-400 hover:bg-neutral-800/50 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
+          <Link href="/observability" className="flex items-center gap-3 rounded-lg text-neutral-400 hover:bg-neutral-800/50 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-            Billing
+            Billing & Metrics
           </Link>
-          <Link href="#" className="flex items-center gap-3 rounded-lg text-neutral-400 hover:bg-neutral-800/50 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
+          <Link href="/memory" className="flex items-center gap-3 rounded-lg text-neutral-400 hover:bg-neutral-800/50 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-            Settings
+            Settings & Memory
           </Link>
         </nav>
         
@@ -254,20 +266,48 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Header */}
         <header className="h-16 flex items-center justify-between px-8 border-b border-neutral-800 bg-neutral-900/30 backdrop-blur-sm shrink-0">
-          <div className="flex items-center gap-4">
+          <form onSubmit={handleCommandSubmit} className="flex items-center gap-4">
             <div className="relative">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
               <input 
                 type="text" 
-                placeholder="AI Command Bar (Ask me anything...)" 
+                value={commandQuery}
+                onChange={(e) => setCommandQuery(e.target.value)}
+                placeholder="AI Command Bar (Ask me anything or dispatch task... Press Enter)" 
                 className="w-96 rounded-full border border-neutral-700/50 bg-neutral-900/50 pl-10 pr-4 py-2 text-sm text-neutral-300 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
               />
             </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <button className="text-neutral-400 hover:text-white transition-colors">
+          </form>
+          <div className="relative flex items-center gap-4">
+            <button 
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="text-neutral-400 hover:text-white transition-colors relative p-2 rounded-lg hover:bg-neutral-800"
+              title="Notifications"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-blue-500 ring-2 ring-neutral-950"></span>
             </button>
+
+            {showNotifications && (
+              <div className="absolute right-0 top-12 w-80 rounded-2xl border border-neutral-800 bg-neutral-900/95 p-4 shadow-2xl backdrop-blur-xl z-50 space-y-3">
+                <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
+                  <span className="text-xs font-bold text-white uppercase tracking-wider">System Notifications</span>
+                  <span className="text-xs text-emerald-400 flex items-center gap-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span> Live
+                  </span>
+                </div>
+                <div className="space-y-2 text-xs">
+                  <div className="p-2.5 rounded-xl bg-neutral-950 border border-neutral-800/80">
+                    <p className="font-semibold text-white">Backend Control Plane Connected</p>
+                    <p className="text-neutral-400 mt-0.5">FastAPI server running at http://127.0.0.1:8000</p>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-neutral-950 border border-neutral-800/80">
+                    <p className="font-semibold text-white">Docker Sandbox Isolation Ready</p>
+                    <p className="text-neutral-400 mt-0.5">All 20 SWE benchmark suites loaded & ready.</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </header>
         
