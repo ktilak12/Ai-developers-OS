@@ -221,88 +221,85 @@ function MultiAgentOrchestratorContent() {
   const totalTime = workflow.agent_traces.reduce((acc, t) => acc + t.duration_sec, 0);
 
   return (
-    <div className="flex-1 overflow-y-auto bg-neutral-950 p-8 text-neutral-100">
+    <div className="flex-1 overflow-y-auto bg-black text-neutral-100 space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <span className="p-2 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3"/><path d="M12 19v3"/><path d="M2 12h3"/><path d="M19 12h3"/><path d="m4.93 4.93 2.12 2.12"/><path d="m16.95 16.95 2.12 2.12"/><path d="m4.93 19.07 2.12-2.12"/><path d="m16.95 7.05 2.12-2.12"/></svg>
+            <span className="p-2 rounded-lg bg-neutral-900 text-neutral-300 border border-neutral-800">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3"/><path d="M12 19v3"/><path d="M2 12h3"/><path d="M19 12h3"/><path d="m4.93 4.93 2.12 2.12"/><path d="m16.95 16.95 2.12 2.12"/><path d="m4.93 19.07 2.12-2.12"/><path d="m16.95 7.05 2.12-2.12"/></svg>
             </span>
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
                 Multi-Agent Orchestrator
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 font-mono font-medium">Phase 14</span>
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-neutral-900 text-neutral-400 border border-neutral-800 font-mono">DAG Pipeline</span>
               </h1>
-              <p className="text-sm text-neutral-400 mt-1">
-                Autonomous coordination plane: Planner → Researcher → Coder → Tester → Security → Reviewer → Approval Gate → GitHub PR.
+              <p className="text-xs text-neutral-400 mt-0.5">
+                Planner → Researcher → Coder → Tester → Security → Reviewer → Approval Gate → GitHub PR
               </p>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <span className="text-xs px-3 py-1.5 rounded-lg bg-neutral-900 border border-neutral-800 text-neutral-400 font-mono">
-            ID: <span className="text-rose-400 font-bold">{workflow.workflow_id}</span>
+        <div className="flex items-center gap-2.5">
+          <span className="text-xs px-2.5 py-1 rounded-md bg-neutral-900 border border-neutral-800 text-neutral-400 font-mono">
+            ID: <span className="text-neutral-200 font-semibold">{workflow.workflow_id}</span>
           </span>
-          <span className={`text-xs px-3 py-1.5 rounded-lg font-mono font-bold border ${
-            workflow.status === "COMPLETED" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
-            workflow.status === "WAITING_APPROVAL" ? "bg-amber-500/10 text-amber-400 border-amber-500/20 animate-pulse" :
-            workflow.status === "FAILED" ? "bg-rose-500/10 text-rose-400 border-rose-500/20" :
-            "bg-blue-500/10 text-blue-400 border-blue-500/20"
-          }`}>
+          <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md font-mono bg-neutral-900 border border-neutral-800 text-neutral-300">
+            <span className={`h-1.5 w-1.5 rounded-full ${
+              workflow.status === "COMPLETED" ? "bg-emerald-500" :
+              workflow.status === "WAITING_APPROVAL" ? "bg-neutral-300 animate-pulse" :
+              "bg-neutral-500"
+            }`}></span>
             {workflow.status}
           </span>
         </div>
       </div>
 
       {/* Task Input Command Bar */}
-      <div className="p-6 rounded-2xl bg-neutral-900/40 border border-neutral-800 backdrop-blur-xl mb-8 space-y-4">
-        <label className="text-xs font-semibold text-neutral-400 uppercase tracking-wider block">
-          Dispatch Engineering Task to Multi-Agent Team
+      <div className="p-5 rounded-xl bg-neutral-950 border border-neutral-800 shadow-sm space-y-3.5">
+        <label className="text-xs font-medium text-neutral-400 uppercase tracking-wider block">
+          Dispatch Engineering Task
         </label>
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col sm:flex-row gap-2.5">
           <input
             type="text"
             value={taskInput}
             onChange={(e) => setTaskInput(e.target.value)}
             placeholder="e.g. Fix checkout failure when a user applies an expired coupon..."
-            className="flex-1 px-4 py-2.5 text-sm bg-neutral-950 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-rose-500/50"
+            className="flex-1 px-3.5 py-2 text-xs bg-neutral-900/80 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-600 transition-colors"
           />
           <button
             onClick={handleRunWorkflow}
             disabled={isRunning}
-            className="px-6 py-2.5 text-sm font-semibold rounded-xl bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white transition-all shadow-lg shadow-rose-600/20 flex items-center justify-center gap-2 disabled:opacity-50"
+            className="px-4 py-2 text-xs font-semibold rounded-lg bg-white text-black hover:bg-neutral-200 transition-colors shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 shrink-0"
           >
             {isRunning ? (
               <>
-                <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
+                <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-black border-t-transparent" />
                 Orchestrating...
               </>
             ) : (
               <>
-                <span>🚀</span>
-                Run Multi-Agent Workflow
+                <span>Run Pipeline</span>
+                <span>&rarr;</span>
               </>
             )}
           </button>
         </div>
 
         {/* Quick sample chips */}
-        <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-400 pt-1">
-          <span className="text-neutral-500">Quick Prompts:</span>
+        <div className="flex flex-wrap items-center gap-1.5 text-xs text-neutral-400 pt-1">
+          <span className="text-neutral-500 text-[11px]">Quick Prompts:</span>
           {[
-            "Fix the checkout failure when an expired coupon is applied",
+            "Fix checkout failure when an expired coupon is applied",
             "Add Google OAuth PKCE authorization flow",
             "Refactor UserService to use connection pooling"
           ].map((prompt) => (
             <button
               key={prompt}
               onClick={() => setTaskInput(prompt)}
-              className="px-2.5 py-1 rounded-md bg-neutral-950 hover:bg-neutral-800 border border-neutral-800 text-neutral-300 transition-colors"
+              className="px-2 py-0.5 rounded-md bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[11px] text-neutral-300 transition-colors"
             >
               {prompt}
             </button>
@@ -312,37 +309,36 @@ function MultiAgentOrchestratorContent() {
 
       {/* Human Approval Gate Alert Banner */}
       {workflow.status === "WAITING_APPROVAL" && (
-        <div className="p-6 rounded-2xl bg-amber-500/10 border border-amber-500/30 backdrop-blur-xl mb-8">
+        <div className="p-5 rounded-xl bg-neutral-950 border border-neutral-800 shadow-sm">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
-                <span>🧑‍⚖️</span>
-                HUMAN APPROVAL GATE REQUIRED
+              <div className="flex items-center gap-2 text-neutral-200 font-semibold text-xs uppercase tracking-wider">
+                <span className="h-2 w-2 rounded-full bg-white"></span>
+                Human Approval Gate Required
               </div>
-              <p className="text-xs text-neutral-300 mt-1">
+              <p className="text-xs text-neutral-400 mt-1">
                 The agent team has analyzed, implemented, tested, and reviewed changes. Automated merge is protected by policy.
               </p>
-              <div className="flex items-center gap-4 mt-3 text-xs font-mono">
-                <span className="text-white font-bold">{workflow.files_changed.length} files changed</span>
-                <span className="text-neutral-600">•</span>
-                <span className="text-emerald-400 font-bold">{workflow.tests_passed} tests passed</span>
-                <span className="text-neutral-600">•</span>
-                <span className="text-emerald-400 font-bold">0 critical security findings</span>
+              <div className="flex items-center gap-3 mt-2.5 text-[11px] font-mono text-neutral-400">
+                <span className="text-neutral-200 font-semibold">{workflow.files_changed.length} files changed</span>
+                <span>•</span>
+                <span className="text-neutral-200 font-semibold">{workflow.tests_passed} tests passed</span>
+                <span>•</span>
+                <span>0 security vulnerabilities</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5 shrink-0">
               <button
                 onClick={() => handleApprove(false)}
-                className="px-4 py-2 text-sm font-semibold rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-neutral-300 transition-colors"
+                className="px-3.5 py-1.5 text-xs font-medium rounded-lg bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-300 transition-colors"
               >
                 Reject Changes
               </button>
               <button
                 onClick={() => handleApprove(true)}
-                className="px-5 py-2 text-sm font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-2"
+                className="px-4 py-1.5 text-xs font-semibold rounded-lg bg-white text-black hover:bg-neutral-200 transition-colors shadow-sm"
               >
-                <span>✓</span>
                 Approve & Create PR
               </button>
             </div>
@@ -352,33 +348,33 @@ function MultiAgentOrchestratorContent() {
 
       {/* PR Created Banner */}
       {workflow.pr_url && (
-        <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 backdrop-blur-xl mb-8 flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-neutral-950 border border-neutral-800 shadow-sm flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">🎉</span>
+            <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
             <div>
-              <h3 className="font-bold text-white text-sm">GitHub Pull Request Created Successfully!</h3>
-              <p className="text-xs text-neutral-400 font-mono mt-0.5">{workflow.pr_url}</p>
+              <h3 className="font-semibold text-white text-xs">Pull Request Created</h3>
+              <p className="text-[11px] text-neutral-400 font-mono mt-0.5">{workflow.pr_url}</p>
             </div>
           </div>
           <a
             href={workflow.pr_url}
             target="_blank"
             rel="noreferrer"
-            className="px-4 py-2 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-colors"
+            className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white text-black hover:bg-neutral-200 transition-colors"
           >
-            View on GitHub →
+            View on GitHub &rarr;
           </a>
         </div>
       )}
 
       {/* Interactive Visual DAG Pipeline */}
-      <div className="p-6 rounded-2xl bg-neutral-900/40 border border-neutral-800 backdrop-blur-xl mb-8">
-        <h2 className="text-sm font-semibold text-neutral-400 uppercase tracking-wider mb-6 flex items-center justify-between">
-          <span>Multi-Agent Execution Pipeline (DAG)</span>
-          <span className="text-xs font-mono text-neutral-500">Total Run Time: {totalTime.toFixed(1)}s</span>
+      <div className="p-5 rounded-xl bg-neutral-950 border border-neutral-800 shadow-sm">
+        <h2 className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-4 flex items-center justify-between">
+          <span>Multi-Agent Pipeline (DAG)</span>
+          <span className="text-[11px] font-mono text-neutral-500">Duration: {totalTime.toFixed(1)}s</span>
         </h2>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2.5">
           {agentsPipeline.map((agent, index) => {
             const trace = workflow.agent_traces.find((t) => t.agent_name.toLowerCase().includes(agent.id));
             const isCompleted = !!trace;
@@ -387,25 +383,25 @@ function MultiAgentOrchestratorContent() {
             return (
               <div
                 key={agent.id}
-                className={`p-3.5 rounded-xl border flex flex-col justify-between transition-all ${
+                className={`p-3 rounded-lg border flex flex-col justify-between transition-all ${
                   isCurrent
-                    ? "bg-rose-500/10 border-rose-500/50 shadow-lg shadow-rose-500/10 scale-105"
+                    ? "bg-neutral-850 border-neutral-700 shadow-sm"
                     : isCompleted
-                    ? "bg-neutral-900/80 border-emerald-500/30"
-                    : "bg-neutral-950/60 border-neutral-800/80 opacity-60"
+                    ? "bg-neutral-900/60 border-neutral-800"
+                    : "bg-neutral-950 border-neutral-900 opacity-50"
                 }`}
               >
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xl">{agent.icon}</span>
-                    <span className="text-[10px] font-mono text-neutral-500 font-semibold">#{index + 1}</span>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-base">{agent.icon}</span>
+                    <span className="text-[10px] font-mono text-neutral-500">#{index + 1}</span>
                   </div>
-                  <h4 className="text-xs font-bold text-white truncate">{agent.name}</h4>
-                  <p className="text-[10px] text-neutral-400 mt-1 line-clamp-2">{agent.desc}</p>
+                  <h4 className="text-xs font-semibold text-white truncate">{agent.name}</h4>
+                  <p className="text-[10px] text-neutral-400 mt-0.5 line-clamp-2">{agent.desc}</p>
                 </div>
 
-                <div className="mt-3 pt-2 border-t border-neutral-800/60 text-[10px] font-mono flex items-center justify-between">
-                  <span className={isCompleted ? "text-emerald-400 font-bold" : "text-neutral-500"}>
+                <div className="mt-2.5 pt-2 border-t border-neutral-850 text-[10px] font-mono flex items-center justify-between">
+                  <span className={isCompleted ? "text-neutral-200 font-semibold" : "text-neutral-500"}>
                     {isCompleted ? "DONE" : isCurrent ? "ACTIVE" : "QUEUED"}
                   </span>
                   {trace && <span className="text-neutral-400">{trace.duration_sec}s</span>}
@@ -417,45 +413,44 @@ function MultiAgentOrchestratorContent() {
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex items-center gap-2 border-b border-neutral-800 pb-4 mb-6 overflow-x-auto">
+      <div className="flex items-center gap-1.5 border-b border-neutral-800 pb-3 overflow-x-auto">
         {[
-          { id: "dag", label: "Execution Trace", icon: "📊" },
-          { id: "diff", label: `Code Diff (${workflow.files_changed.length})`, icon: "💻" },
-          { id: "tests", label: `Test Sandbox (${workflow.tests_passed}/${workflow.tests_passed + workflow.tests_failed})`, icon: "🧪" },
-          { id: "security", label: `Security (${workflow.security_findings.length})`, icon: "🔐" },
-          { id: "review", label: "Reviewer Verdict", icon: "👁" },
-          { id: "research", label: "Technical Research", icon: "🔎" }
+          { id: "dag", label: "Execution Trace" },
+          { id: "diff", label: `Code Diff (${workflow.files_changed.length})` },
+          { id: "tests", label: `Test Sandbox (${workflow.tests_passed}/${workflow.tests_passed + workflow.tests_failed})` },
+          { id: "security", label: `Security (${workflow.security_findings.length})` },
+          { id: "review", label: "Reviewer Verdict" },
+          { id: "research", label: "Technical Research" }
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`px-3.5 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap ${
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap ${
               activeTab === tab.id
-                ? "bg-neutral-800 text-white font-semibold border border-neutral-700 shadow-sm"
-                : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900/50"
+                ? "bg-white text-black font-semibold shadow-sm"
+                : "text-neutral-400 hover:text-white hover:bg-neutral-900"
             }`}
           >
-            <span>{tab.icon}</span>
             {tab.label}
           </button>
         ))}
       </div>
 
-      {/* TAB 1: EXECUTION TRACE (PDF Module 20 / Observability) */}
+      {/* TAB 1: EXECUTION TRACE */}
       {activeTab === "dag" && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {workflow.agent_traces.map((trace) => (
-              <div key={trace.step_id} className="p-5 rounded-2xl bg-neutral-900/40 border border-neutral-800 backdrop-blur-xl">
-                <div className="flex items-center justify-between mb-2">
+              <div key={trace.step_id} className="p-4 rounded-xl bg-neutral-950 border border-neutral-800 shadow-sm">
+                <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                    <h3 className="font-bold text-white text-sm">{trace.agent_name}</h3>
+                    <span className="w-1.5 h-1.5 rounded-full bg-neutral-400"></span>
+                    <h3 className="font-semibold text-white text-xs">{trace.agent_name}</h3>
                   </div>
-                  <div className="flex items-center gap-2 text-xs font-mono text-neutral-400">
-                    <span>{trace.tool_calls_count} tool calls</span>
+                  <div className="flex items-center gap-2 text-[11px] font-mono text-neutral-400">
+                    <span>{trace.tool_calls_count} tools</span>
                     <span>•</span>
-                    <span className="text-emerald-400 font-semibold">{trace.duration_sec}s</span>
+                    <span className="text-neutral-200">{trace.duration_sec}s</span>
                   </div>
                 </div>
                 <p className="text-xs text-neutral-300">{trace.summary}</p>
@@ -467,19 +462,19 @@ function MultiAgentOrchestratorContent() {
 
       {/* TAB 2: CODE DIFF */}
       {activeTab === "diff" && (
-        <div className="p-6 rounded-2xl bg-neutral-900/40 border border-neutral-800 backdrop-blur-xl space-y-4">
+        <div className="p-5 rounded-xl bg-neutral-950 border border-neutral-800 shadow-sm space-y-3.5">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-white">Modified Files ({workflow.files_changed.length})</h3>
-            <span className="text-xs text-neutral-400 font-mono">Unified Git Diff</span>
+            <h3 className="text-xs font-semibold text-white">Modified Files ({workflow.files_changed.length})</h3>
+            <span className="text-[11px] text-neutral-400 font-mono">Unified Git Diff</span>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {workflow.files_changed.map((file) => (
-              <span key={file} className="px-2.5 py-1 rounded-lg bg-neutral-950 border border-neutral-800 text-xs font-mono text-emerald-400">
+              <span key={file} className="px-2 py-0.5 rounded-md bg-neutral-900 border border-neutral-800 text-[11px] font-mono text-neutral-300">
                 {file}
               </span>
             ))}
           </div>
-          <pre className="p-4 rounded-xl bg-neutral-950 border border-neutral-800 text-xs font-mono text-neutral-200 overflow-x-auto whitespace-pre-wrap leading-relaxed">
+          <pre className="p-3.5 rounded-lg bg-neutral-900/70 border border-neutral-800 text-xs font-mono text-neutral-300 overflow-x-auto whitespace-pre-wrap leading-relaxed">
             {workflow.diff}
           </pre>
         </div>
@@ -487,14 +482,14 @@ function MultiAgentOrchestratorContent() {
 
       {/* TAB 3: TESTS SANDBOX */}
       {activeTab === "tests" && (
-        <div className="p-6 rounded-2xl bg-neutral-900/40 border border-neutral-800 backdrop-blur-xl space-y-4">
+        <div className="p-5 rounded-xl bg-neutral-950 border border-neutral-800 shadow-sm space-y-3.5">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-white">Docker Sandbox Test Results</h3>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono font-bold">
+            <h3 className="text-xs font-semibold text-white">Docker Sandbox Test Results</h3>
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-neutral-900 text-neutral-300 border border-neutral-800 font-mono">
               PASS: {workflow.tests_passed} / {workflow.tests_passed + workflow.tests_failed}
             </span>
           </div>
-          <pre className="p-4 rounded-xl bg-neutral-950 border border-neutral-800 text-xs font-mono text-emerald-300 overflow-x-auto whitespace-pre-wrap leading-relaxed">
+          <pre className="p-3.5 rounded-lg bg-neutral-900/70 border border-neutral-800 text-xs font-mono text-neutral-300 overflow-x-auto whitespace-pre-wrap leading-relaxed">
             {workflow.test_logs}
           </pre>
         </div>
@@ -502,20 +497,19 @@ function MultiAgentOrchestratorContent() {
 
       {/* TAB 4: SECURITY */}
       {activeTab === "security" && (
-        <div className="p-6 rounded-2xl bg-neutral-900/40 border border-neutral-800 backdrop-blur-xl space-y-4">
-          <h3 className="text-sm font-semibold text-white">Security Agent Findings</h3>
+        <div className="p-5 rounded-xl bg-neutral-950 border border-neutral-800 shadow-sm space-y-3.5">
+          <h3 className="text-xs font-semibold text-white">Security Agent Findings</h3>
           {workflow.security_findings.length === 0 ? (
-            <div className="p-6 rounded-xl bg-neutral-950/60 border border-neutral-800 text-center">
-              <span className="text-2xl block mb-2">🛡️</span>
-              <p className="text-sm font-semibold text-white">Zero Security Vulnerabilities Detected</p>
-              <p className="text-xs text-neutral-400 mt-1">
+            <div className="p-5 rounded-lg bg-neutral-900/50 border border-neutral-800 text-center">
+              <p className="text-xs font-semibold text-white">Zero Security Vulnerabilities Detected</p>
+              <p className="text-[11px] text-neutral-400 mt-1">
                 Verified against hardcoded secrets, injection vectors, and command allowlists.
               </p>
             </div>
           ) : (
             <div className="space-y-2">
               {workflow.security_findings.map((f, i) => (
-                <div key={i} className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-xs text-rose-300">
+                <div key={i} className="p-2.5 rounded-lg bg-neutral-900 border border-neutral-800 text-xs text-neutral-300">
                   {f.problem || "Finding"}
                 </div>
               ))}
@@ -526,33 +520,33 @@ function MultiAgentOrchestratorContent() {
 
       {/* TAB 5: REVIEW */}
       {activeTab === "review" && (
-        <div className="p-6 rounded-2xl bg-neutral-900/40 border border-neutral-800 backdrop-blur-xl space-y-4">
+        <div className="p-5 rounded-xl bg-neutral-950 border border-neutral-800 shadow-sm space-y-3.5">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-white">Reviewer Agent Checklist</h3>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold font-mono">
+            <h3 className="text-xs font-semibold text-white">Reviewer Agent Checklist</h3>
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-neutral-900 text-neutral-300 border border-neutral-800 font-mono">
               {workflow.review?.status || "APPROVED"}
             </span>
           </div>
           <div className="space-y-2">
             {(workflow.review?.checklist || []).map((c: any, i: number) => (
-              <div key={i} className="p-3 rounded-xl bg-neutral-950/60 border border-neutral-800 flex items-center justify-between text-xs">
+              <div key={i} className="p-2.5 rounded-lg bg-neutral-900/60 border border-neutral-800 flex items-center justify-between text-xs">
                 <span className="text-neutral-200">{c.item}</span>
-                <span className="text-emerald-400 font-bold">✓ PASS</span>
+                <span className="text-neutral-400 font-mono text-[11px]">PASS</span>
               </div>
             ))}
           </div>
-          <p className="text-xs text-neutral-400 pt-2">{workflow.review?.summary}</p>
+          <p className="text-xs text-neutral-400 pt-1">{workflow.review?.summary}</p>
         </div>
       )}
 
       {/* TAB 6: RESEARCH */}
       {activeTab === "research" && (
-        <div className="p-6 rounded-2xl bg-neutral-900/40 border border-neutral-800 backdrop-blur-xl space-y-4">
-          <h3 className="text-sm font-semibold text-white">Technical Documentation & Research Brief</h3>
-          <div className="p-4 rounded-xl bg-neutral-950 border border-neutral-800 text-xs font-mono text-neutral-300 space-y-2">
-            <p className="text-rose-400 font-bold">Recommended Pattern:</p>
-            <p>Implement coupon invalidation by clearing session state and applying discount rollback before final payment step.</p>
-            <p className="text-neutral-500 pt-2">References: RFC 7636, OWASP Cart Tampering Mitigation Guidelines</p>
+        <div className="p-5 rounded-xl bg-neutral-950 border border-neutral-800 shadow-sm space-y-3.5">
+          <h3 className="text-xs font-semibold text-white">Technical Documentation & Research Brief</h3>
+          <div className="p-3.5 rounded-lg bg-neutral-900/70 border border-neutral-800 text-xs font-mono text-neutral-300 space-y-1.5">
+            <p className="text-neutral-200 font-semibold">Recommended Pattern:</p>
+            <p className="text-neutral-400">Implement coupon invalidation by clearing session state and applying discount rollback before final payment step.</p>
+            <p className="text-neutral-500 pt-1 text-[11px]">References: RFC 7636, OWASP Cart Tampering Mitigation Guidelines</p>
           </div>
         </div>
       )}
