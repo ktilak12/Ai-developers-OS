@@ -1,9 +1,11 @@
+import html
 from evaluation.models import ComparativeScorecard
 
 
 class BenchmarkReportGenerator:
     """
     Generates human-readable Markdown scorecards and reports comparing Agent v1 vs Agent v2.
+    Sanitizes dynamic fields to prevent HTML and script injection in markdown renderers.
     """
 
     @staticmethod
@@ -11,9 +13,12 @@ class BenchmarkReportGenerator:
         v1 = scorecard.v1_baseline
         v2 = scorecard.v2_orchestrated
 
+        safe_eval_id = html.escape(str(scorecard.evaluation_id))
+        safe_created_at = html.escape(str(scorecard.created_at))
+
         lines = [
-            f"# SWE Benchmark Evaluation Report ({scorecard.evaluation_id})",
-            f"**Evaluated Tasks:** {scorecard.tasks_evaluated_count} | **Timestamp:** {scorecard.created_at}",
+            f"# SWE Benchmark Evaluation Report ({safe_eval_id})",
+            f"**Evaluated Tasks:** {scorecard.tasks_evaluated_count} | **Timestamp:** {safe_created_at}",
             "",
             "## 🏆 Executive Summary",
             f"- **Task Completion Rate:** Agent v1: `{v1.completion_rate_pct}%` ➡️ Agent v2: `{v2.completion_rate_pct}%` (**+{scorecard.completion_improvement_pct}% gain**)",
@@ -38,8 +43,13 @@ class BenchmarkReportGenerator:
         ]
 
         for item in scorecard.task_breakdown[:5]:
-            lines.append(f"### `{item['task_id']}`: {item['title']}")
-            lines.append(f"- **Category:** {item['category']} | **Difficulty:** {item['difficulty']}")
+            safe_task_id = html.escape(str(item.get("task_id", "")))
+            safe_title = html.escape(str(item.get("title", "")))
+            safe_cat = html.escape(str(item.get("category", "")))
+            safe_diff = html.escape(str(item.get("difficulty", "")))
+
+            lines.append(f"### `{safe_task_id}`: {safe_title}")
+            lines.append(f"- **Category:** {safe_cat} | **Difficulty:** {safe_diff}")
             lines.append(f"- **Agent v1:** Completed: {item['v1']['completed']} | Tests: {item['v1']['test_success_rate']}% | Security: {item['v1']['security_score']}")
             lines.append(f"- **Agent v2:** Completed: {item['v2']['completed']} | Tests: {item['v2']['test_success_rate']}% | Security: {item['v2']['security_score']}")
             lines.append("")

@@ -106,3 +106,39 @@ def test_evaluation_api_error_handling():
     # 3. Invalid task_ids list type returns 400
     res_bad_type = client.post("/api/evaluation/benchmark/run", json={"task_ids": "not_a_list"})
     assert res_bad_type.status_code in (400, 422)
+
+    # 4. Invalid task ID format returns 400
+    res_bad_format = client.get("/api/evaluation/benchmark/tasks/swe-01;SELECT")
+    assert res_bad_format.status_code == 400
+
+    # 5. Non-matching task IDs in run returns 400
+    res_no_match = client.post("/api/evaluation/benchmark/run", json={"task_ids": ["swe-unknown-999"]})
+    assert res_no_match.status_code == 400
+    assert "No matching benchmark tasks" in res_no_match.json()["detail"]
+
+
+def test_evaluation_security_hardening():
+    temp_dir = tempfile.mkdtemp()
+    try:
+        # 1. Path traversal prevention
+        with pytest.raises(ValueError, match="Path traversal detected"):
+            SWEEvaluator(temp_dir, storage_path=os.path.join(temp_dir, "..", "escaped_bench.json"))
+
+        evaluator = SWEEvaluator(temp_dir)
+
+        # 2. Rejection of invalid task_ids list
+        with pytest.raises(ValueError, match="Invalid task_id format"):
+            evaluator.run_benchmark(task_ids=["swe-01\0injection"])
+
+        with pytest.raises(ValueError, match="No matching benchmark tasks"):
+            evaluator.run_benchmark(task_ids=["swe-nonexistent-99"])
+
+        # 3. HTML Injection sanitization in BenchmarkReportGenerator
+        scorecard = evaluator.get_latest_scorecard()
+        assert scorecard is not None
+        scorecard.task_breakdown[0]["title"] = "<script>alert('XSS')</script> Injection"
+        md = BenchmarkReportGenerator.generate_markdown_report(scorecard)
+        assert "<script>" not in md
+        assert "&lt;script&gt;" in md
+    finally:
+        shutil.rmtree(temp_dir)

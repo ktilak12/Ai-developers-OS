@@ -26,8 +26,14 @@ class SWEEvaluator:
     """
 
     def __init__(self, root_dir: str, storage_path: Optional[str] = None):
-        self.root_dir = root_dir
-        self.storage_path = storage_path or os.path.join(root_dir, ".evaluation", "benchmark_results.json")
+        self.root_dir = os.path.realpath(os.path.abspath(root_dir))
+        if storage_path:
+            norm_storage = os.path.realpath(os.path.abspath(storage_path))
+            if not (norm_storage == self.root_dir or norm_storage.startswith(self.root_dir + os.sep)):
+                raise ValueError("Path traversal detected: storage_path must reside within root_dir.")
+            self.storage_path = norm_storage
+        else:
+            self.storage_path = os.path.join(self.root_dir, ".evaluation", "benchmark_results.json")
         self.scorecards: List[ComparativeScorecard] = []
         self._load_from_storage()
         if not self.scorecards:
@@ -98,7 +104,18 @@ class SWEEvaluator:
         """
         Run the SWE benchmark suite across the requested or all 20 tasks.
         """
-        tasks = [t for t in SWE_BENCHMARK_20_TASKS if (not task_ids or t.task_id in task_ids)]
+        if task_ids is not None:
+            if not isinstance(task_ids, list):
+                raise ValueError("task_ids must be a list of task ID strings.")
+            for tid in task_ids:
+                if not tid or not isinstance(tid, str) or "\0" in tid or len(tid) > 64:
+                    raise ValueError(f"Invalid task_id format: '{tid}'")
+            tasks = [t for t in SWE_BENCHMARK_20_TASKS if t.task_id in task_ids]
+            if not tasks:
+                raise ValueError("No matching benchmark tasks found for the provided task_ids.")
+        else:
+            tasks = list(SWE_BENCHMARK_20_TASKS)
+
         v1_results: List[EvaluationMetricResult] = []
         v2_results: List[EvaluationMetricResult] = []
         breakdown: List[Dict[str, Any]] = []
@@ -168,6 +185,8 @@ class SWEEvaluator:
         )
 
         self.scorecards.insert(0, scorecard)
+        if len(self.scorecards) > 50:
+            self.scorecards = self.scorecards[:50]
         self.save_to_storage()
         return scorecard
 
