@@ -73,14 +73,15 @@ export default function ProjectRAGPage() {
   return (
     <div className="max-w-6xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-8 border-b border-neutral-800 pb-6">
         <div className="flex items-center gap-3">
-          <h1 className="text-3xl font-bold text-white tracking-tight">Project RAG Retrieval</h1>
-          <span className="inline-flex items-center rounded-full bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-400 border border-cyan-500/20">
+          <div className="h-2 w-2 rounded-full bg-emerald-500" />
+          <h1 className="text-3xl font-extrabold text-white tracking-tight">Project RAG Retrieval</h1>
+          <span className="inline-flex items-center rounded-md bg-neutral-900 px-2.5 py-0.5 text-[11px] font-mono text-neutral-300 border border-neutral-800">
             Phase 4 Active
           </span>
         </div>
-        <p className="text-neutral-400 mt-1">Chunking, L2 vector embeddings, vector store retrieval & cross-encoder reranking.</p>
+        <p className="text-sm text-neutral-400 mt-2">Chunking, L2 vector embeddings, vector store retrieval & cross-encoder reranking.</p>
       </div>
 
       {/* Query Bar */}
@@ -91,13 +92,13 @@ export default function ProjectRAGPage() {
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             placeholder="Ask a question (e.g. 'How does checkout work?')"
-            className="w-full rounded-2xl border border-neutral-800 bg-neutral-900/80 px-6 py-4 pl-12 text-base text-white placeholder-neutral-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 shadow-2xl transition-colors"
+            className="w-full rounded-xl border border-neutral-800 bg-neutral-950 px-6 py-3.5 pl-12 text-sm text-white placeholder-neutral-500 focus:border-neutral-500 focus:outline-none shadow-sm transition-colors"
           />
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
           <button 
             type="submit"
             disabled={loading}
-            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-xl bg-cyan-600 px-5 py-2 text-sm font-semibold text-white hover:bg-cyan-700 transition-colors shadow-lg shadow-cyan-900/30"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg bg-white px-4 py-2 text-xs font-semibold text-black hover:bg-neutral-200 transition-colors shadow-sm disabled:opacity-50"
           >
             {loading ? "Searching Vectors..." : "Retrieve RAG Context"}
           </button>
@@ -108,11 +109,11 @@ export default function ProjectRAGPage() {
       {ragData && (
         <div className="space-y-8">
           {/* Retrieved Context Summary */}
-          <div className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-6 backdrop-blur-xl">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-cyan-400 mb-2">Retrieved Files Context</h3>
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-2">Retrieved Files Context</h3>
             <div className="flex flex-wrap gap-2 mb-4">
               {ragData.retrieved_files.map((file) => (
-                <span key={file} className="rounded-lg bg-neutral-950 px-3 py-1 font-mono text-xs text-neutral-300 border border-neutral-800">
+                <span key={file} className="rounded-md bg-neutral-900 px-3 py-1 font-mono text-xs text-neutral-300 border border-neutral-800">
                   {file}
                 </span>
               ))}
@@ -121,27 +122,27 @@ export default function ProjectRAGPage() {
           </div>
 
           {/* Candidate Code Chunks */}
-          <div className="space-y-6">
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+          <div className="space-y-4">
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
               Ranked Vector Candidates ({ragData.results.length})
             </h3>
 
             {ragData.results.map((res, idx) => (
-              <div key={idx} className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-6 space-y-3">
+              <div key={idx} className="rounded-xl border border-neutral-800 bg-neutral-950 p-5 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <span className="font-mono text-sm font-semibold text-white">{res.chunk.file_path}</span>
                     <span className="text-xs text-neutral-500 font-mono">Lines {res.chunk.start_line}-{res.chunk.end_line}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-cyan-400 bg-cyan-500/10 px-2.5 py-1 rounded-full font-mono font-medium border border-cyan-500/20">
+                    <span className="text-xs text-neutral-300 bg-neutral-900 px-2.5 py-0.5 rounded-md font-mono font-medium border border-neutral-800">
                       Relevance Score: {res.final_score}
                     </span>
                   </div>
                 </div>
 
-                <pre className="rounded-xl border border-neutral-800 bg-neutral-950 p-4 text-xs font-mono text-neutral-300 overflow-x-auto">
+                <pre className="rounded-lg border border-neutral-850 bg-neutral-900 p-4 text-xs font-mono text-neutral-300 overflow-x-auto">
                   <code>{res.chunk.text}</code>
                 </pre>
               </div>
