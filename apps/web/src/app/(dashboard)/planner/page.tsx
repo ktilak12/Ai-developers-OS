@@ -147,46 +147,34 @@ export default function PlannerAgentPage() {
   };
 
   const getActionBadge = (action: string) => {
-    switch (action) {
-      case "READ":
-        return <span className="rounded bg-blue-500/10 px-2 py-0.5 text-xs font-mono font-bold text-blue-400 border border-blue-500/20">READ</span>;
-      case "MODIFY":
-        return <span className="rounded bg-amber-500/10 px-2 py-0.5 text-xs font-mono font-bold text-amber-400 border border-amber-500/20">MODIFY</span>;
-      case "CREATE":
-        return <span className="rounded bg-emerald-500/10 px-2 py-0.5 text-xs font-mono font-bold text-emerald-400 border border-emerald-500/20">CREATE</span>;
-      case "EXECUTE":
-        return <span className="rounded bg-purple-500/10 px-2 py-0.5 text-xs font-mono font-bold text-purple-400 border border-purple-500/20">EXECUTE</span>;
-      case "REVIEW":
-        return <span className="rounded bg-cyan-500/10 px-2 py-0.5 text-xs font-mono font-bold text-cyan-400 border border-cyan-500/20">REVIEW</span>;
-      default:
-        return <span className="rounded bg-neutral-800 px-2 py-0.5 text-xs font-mono font-bold text-neutral-400">{action}</span>;
-    }
+    return (
+      <span className="rounded-md bg-neutral-900 px-2 py-0.5 text-[11px] font-mono font-medium text-neutral-300 border border-neutral-800">
+        {action}
+      </span>
+    );
   };
 
   const getSeverityBadge = (sev: string) => {
-    switch (sev) {
-      case "HIGH":
-        return <span className="rounded bg-red-500/20 px-2.5 py-0.5 text-xs font-bold text-red-400 border border-red-500/30">HIGH RISK</span>;
-      case "MEDIUM":
-        return <span className="rounded bg-amber-500/20 px-2.5 py-0.5 text-xs font-bold text-amber-400 border border-amber-500/30">MEDIUM RISK</span>;
-      case "LOW":
-        return <span className="rounded bg-blue-500/20 px-2.5 py-0.5 text-xs font-bold text-blue-400 border border-blue-500/30">LOW RISK</span>;
-      default:
-        return <span className="rounded bg-neutral-800 px-2 py-0.5 text-xs font-bold text-neutral-300">{sev}</span>;
-    }
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-md bg-neutral-900 px-2 py-0.5 text-[11px] font-mono text-neutral-300 border border-neutral-800">
+        <span className={`h-1.5 w-1.5 rounded-full ${sev === "HIGH" ? "bg-red-500" : sev === "MEDIUM" ? "bg-neutral-400" : "bg-neutral-600"}`}></span>
+        {sev} RISK
+      </span>
+    );
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 pb-16">
+    <div className="max-w-6xl mx-auto space-y-6 pb-16">
       {/* Header */}
       <div>
-        <div className="flex items-center gap-3">
-          <h1 className="text-3xl font-bold text-white tracking-tight">Planner Agent</h1>
-          <span className="inline-flex items-center rounded-full bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-400 border border-amber-500/20">
-            Phase 5 Enhanced
+        <div className="flex items-center gap-2.5">
+          <h1 className="text-2xl font-bold text-white tracking-tight">Planner Agent</h1>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-neutral-900 px-2.5 py-0.5 text-[11px] font-medium text-neutral-300 border border-neutral-800 font-mono">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+            DAG Planner
           </span>
         </div>
-        <p className="text-neutral-400 mt-1">
+        <p className="text-xs text-neutral-400 mt-1">
           Analyzes software requirements, queries RAG vector indexes & AST code intelligence, and generates safe, structured implementation plans.
         </p>
       </div>
@@ -200,29 +188,29 @@ export default function PlannerAgentPage() {
               value={taskRequest}
               onChange={(e) => setTaskRequest(e.target.value)}
               placeholder="Enter software task (e.g. 'Add password reset functionality.')"
-              className="w-full rounded-2xl border border-neutral-800 bg-neutral-900/80 px-6 py-4 pl-12 pr-36 text-base text-white placeholder-neutral-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 shadow-2xl transition-colors"
+              className="w-full rounded-xl border border-neutral-800 bg-neutral-900/80 px-4 py-3 pl-10 pr-32 text-xs text-white placeholder-neutral-500 focus:border-neutral-600 focus:outline-none shadow-sm transition-colors"
             />
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400">
               <circle cx="12" cy="12" r="10"/>
               <polygon points="12 8 8 16 16 16 12 8"/>
             </svg>
             <button 
               type="submit"
               disabled={loading}
-              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-amber-500 transition-all shadow-lg shadow-amber-950/40 disabled:opacity-50"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg bg-white px-3.5 py-1.5 text-xs font-semibold text-black hover:bg-neutral-200 transition-all shadow-sm disabled:opacity-50"
             >
               {loading ? "Analyzing..." : "Generate Plan"}
             </button>
           </div>
         </form>
 
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="text-neutral-500 font-medium">Quick Tasks:</span>
+        <div className="flex flex-wrap items-center gap-1.5 text-xs">
+          <span className="text-neutral-500 text-[11px]">Quick Tasks:</span>
           {samplePrompts.map((prompt, i) => (
             <button
               key={i}
               onClick={() => setTaskRequest(prompt)}
-              className="rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-1 text-neutral-400 hover:text-amber-400 hover:border-amber-500/40 transition-colors"
+              className="rounded-md border border-neutral-800 bg-neutral-900 px-2.5 py-1 text-[11px] text-neutral-300 hover:text-white hover:bg-neutral-800 transition-colors"
             >
               {prompt}
             </button>
@@ -232,32 +220,32 @@ export default function PlannerAgentPage() {
 
       {/* Main Plan Breakdown Card */}
       {plan && (
-        <div className="space-y-6">
+        <div className="space-y-5">
           {/* Goal & Requirements Banner */}
-          <div className="rounded-2xl border border-neutral-800 bg-neutral-900/70 p-6 backdrop-blur-xl space-y-4 shadow-xl">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-800 pb-4">
+          <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-5 space-y-3.5 shadow-sm">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-800/80 pb-3.5">
               <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-amber-400">Implementation Goal</span>
-                <h2 className="text-xl font-bold text-white mt-1">{plan.goal}</h2>
+                <span className="text-[11px] font-medium uppercase tracking-wider text-neutral-400">Implementation Goal</span>
+                <h2 className="text-base font-semibold text-white mt-0.5">{plan.goal}</h2>
               </div>
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center rounded-lg bg-neutral-950 px-3 py-1.5 text-xs font-mono text-neutral-300 border border-neutral-800">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400 mr-2"></span>
+                <span className="inline-flex items-center rounded-md bg-neutral-900 px-2.5 py-1 text-xs font-mono text-neutral-300 border border-neutral-800">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 mr-2"></span>
                   RAG Chunks: {plan.retrieved_context_summary?.rag_chunks_found ?? 0}
                 </span>
-                <span className="inline-flex items-center rounded-lg bg-neutral-950 px-3 py-1.5 text-xs font-mono text-neutral-300 border border-neutral-800">
-                  <span className="h-2 w-2 rounded-full bg-blue-400 mr-2"></span>
+                <span className="inline-flex items-center rounded-md bg-neutral-900 px-2.5 py-1 text-xs font-mono text-neutral-300 border border-neutral-800">
+                  <span className="h-1.5 w-1.5 rounded-full bg-neutral-400 mr-2"></span>
                   AST Symbols: {plan.retrieved_context_summary?.ast_symbols_matched ?? 0}
                 </span>
               </div>
             </div>
 
             <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-2">Technical Requirements</h4>
+              <h4 className="text-[11px] font-medium uppercase tracking-wider text-neutral-400 mb-2">Technical Requirements</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {plan.requirements.map((req, i) => (
-                  <div key={i} className="flex items-start gap-2.5 text-xs text-neutral-300 bg-neutral-950/60 p-2.5 rounded-lg border border-neutral-800/80">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-amber-400 shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <div key={i} className="flex items-start gap-2 text-xs text-neutral-300 bg-neutral-900/50 p-2.5 rounded-lg border border-neutral-800">
+                    <span className="text-neutral-500 mt-0.5">&bull;</span>
                     <span>{req}</span>
                   </div>
                 ))}
@@ -266,43 +254,43 @@ export default function PlannerAgentPage() {
           </div>
 
           {/* Tab Navigation */}
-          <div className="flex items-center gap-2 border-b border-neutral-800 pb-2">
+          <div className="flex items-center gap-1.5 border-b border-neutral-800 pb-2.5">
             <button
               onClick={() => setActiveTab("steps")}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 activeTab === "steps"
-                  ? "bg-amber-500/10 text-amber-400 border border-amber-500/30"
-                  : "text-neutral-400 hover:text-white"
+                  ? "bg-white text-black font-semibold shadow-sm"
+                  : "text-neutral-400 hover:text-white hover:bg-neutral-900"
               }`}
             >
               Ordered Steps ({plan.structured_steps?.length ?? plan.implementation_steps.length})
             </button>
             <button
               onClick={() => setActiveTab("files")}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 activeTab === "files"
-                  ? "bg-amber-500/10 text-amber-400 border border-amber-500/30"
-                  : "text-neutral-400 hover:text-white"
+                  ? "bg-white text-black font-semibold shadow-sm"
+                  : "text-neutral-400 hover:text-white hover:bg-neutral-900"
               }`}
             >
               Affected Files ({plan.affected_files_detailed?.length ?? plan.affected_files.length})
             </button>
             <button
               onClick={() => setActiveTab("risks")}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 activeTab === "risks"
-                  ? "bg-amber-500/10 text-amber-400 border border-amber-500/30"
-                  : "text-neutral-400 hover:text-white"
+                  ? "bg-white text-black font-semibold shadow-sm"
+                  : "text-neutral-400 hover:text-white hover:bg-neutral-900"
               }`}
             >
               Risk Assessment ({plan.risk_matrix?.length ?? plan.potential_risks.length})
             </button>
             <button
               onClick={() => setActiveTab("context")}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 activeTab === "context"
-                  ? "bg-amber-500/10 text-amber-400 border border-amber-500/30"
-                  : "text-neutral-400 hover:text-white"
+                  ? "bg-white text-black font-semibold shadow-sm"
+                  : "text-neutral-400 hover:text-white hover:bg-neutral-900"
               }`}
             >
               RAG Context Inspector
@@ -311,22 +299,22 @@ export default function PlannerAgentPage() {
 
           {/* Tab Contents */}
           {activeTab === "steps" && (
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {(plan.structured_steps || []).map((step, idx) => (
-                <div key={idx} className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-5 hover:border-neutral-700 transition-colors">
-                  <div className="flex items-center justify-between gap-4 mb-2">
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 text-xs font-bold font-mono text-amber-400 border border-amber-500/20">
-                        Step {step.step}
+                <div key={idx} className="rounded-xl border border-neutral-800 bg-neutral-950 p-4 hover:border-neutral-700 transition-colors">
+                  <div className="flex items-center justify-between gap-4 mb-1.5">
+                    <div className="flex items-center gap-2.5">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-md bg-neutral-900 text-[11px] font-mono text-neutral-300 border border-neutral-800">
+                        {step.step}
                       </span>
-                      <h3 className="text-base font-bold text-white">{step.title}</h3>
+                      <h3 className="text-xs font-semibold text-white">{step.title}</h3>
                     </div>
                     {getActionBadge(step.action)}
                   </div>
-                  <p className="text-sm text-neutral-300 mb-3">{step.description}</p>
-                  <div className="flex items-center gap-2 text-xs font-mono text-neutral-400 bg-neutral-950 px-3 py-1.5 rounded-lg border border-neutral-800 w-fit">
-                    <span className="text-neutral-500">Target File:</span>
-                    <span className="text-amber-400">{step.target_file}</span>
+                  <p className="text-xs text-neutral-300 mb-2.5">{step.description}</p>
+                  <div className="flex items-center gap-2 text-[11px] font-mono text-neutral-400 bg-neutral-900/60 px-2.5 py-1 rounded-md border border-neutral-800 w-fit">
+                    <span className="text-neutral-500">Target:</span>
+                    <span className="text-neutral-200">{step.target_file}</span>
                   </div>
                 </div>
               ))}
@@ -334,19 +322,19 @@ export default function PlannerAgentPage() {
           )}
 
           {activeTab === "files" && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {(plan.affected_files_detailed || []).map((file, idx) => (
-                <div key={idx} className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-5 space-y-3">
+                <div key={idx} className="rounded-xl border border-neutral-800 bg-neutral-950 p-4 space-y-2.5">
                   <div className="flex items-center justify-between">
                     {getActionBadge(file.action)}
-                    <span className="text-xs font-mono text-emerald-400 font-medium">{file.est_changes}</span>
+                    <span className="text-[11px] font-mono text-neutral-300">{file.est_changes}</span>
                   </div>
-                  <div className="font-mono text-xs text-white break-all font-semibold bg-neutral-950 p-2.5 rounded-xl border border-neutral-800">
+                  <div className="font-mono text-xs text-neutral-200 break-all bg-neutral-900/80 p-2 rounded-lg border border-neutral-800">
                     {file.path}
                   </div>
-                  <div className="flex items-center justify-between text-xs text-neutral-400 pt-1">
-                    <span>Baseline Lines: {file.line_count}</span>
-                    <span>Status: Verified</span>
+                  <div className="flex items-center justify-between text-[11px] text-neutral-400 pt-0.5">
+                    <span>Lines: {file.line_count}</span>
+                    <span>Verified</span>
                   </div>
                 </div>
               ))}
@@ -354,15 +342,15 @@ export default function PlannerAgentPage() {
           )}
 
           {activeTab === "risks" && (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {(plan.risk_matrix || []).map((risk, idx) => (
-                <div key={idx} className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-5 space-y-3">
+                <div key={idx} className="rounded-xl border border-neutral-800 bg-neutral-950 p-4 space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-white">{risk.risk}</span>
+                    <span className="text-xs font-semibold text-white">{risk.risk}</span>
                     {getSeverityBadge(risk.severity)}
                   </div>
-                  <div className="rounded-xl bg-neutral-950 p-3 border border-neutral-800/80 text-xs text-neutral-300">
-                    <span className="font-semibold text-amber-400 uppercase tracking-wider block mb-1">Mitigation Strategy</span>
+                  <div className="rounded-lg bg-neutral-900/70 p-2.5 border border-neutral-800 text-xs text-neutral-300">
+                    <span className="font-medium text-neutral-400 uppercase tracking-wider block mb-0.5 text-[10px]">Mitigation</span>
                     {risk.mitigation}
                   </div>
                 </div>
@@ -371,15 +359,14 @@ export default function PlannerAgentPage() {
           )}
 
           {activeTab === "context" && (
-            <div className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-6 space-y-6">
+            <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-5 space-y-5">
               <div>
-                <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-400"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                <h3 className="text-xs font-semibold text-white mb-2 flex items-center gap-2">
                   Top RAG Vector Context Files
                 </h3>
                 <div className="space-y-1.5 font-mono text-xs">
                   {plan.retrieved_context_summary?.top_retrieved_files.map((f, i) => (
-                    <div key={i} className="rounded-lg bg-neutral-950 px-3 py-2 text-neutral-300 border border-neutral-800">
+                    <div key={i} className="rounded-lg bg-neutral-900/70 px-3 py-1.5 text-neutral-300 border border-neutral-800">
                       {f}
                     </div>
                   ))}
@@ -387,13 +374,12 @@ export default function PlannerAgentPage() {
               </div>
 
               <div>
-                <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <h3 className="text-xs font-semibold text-white mb-2 flex items-center gap-2">
                   Matched AST Code Intelligence Symbols
                 </h3>
-                <div className="flex flex-wrap gap-2 font-mono text-xs">
+                <div className="flex flex-wrap gap-1.5 font-mono text-xs">
                   {plan.retrieved_context_summary?.top_matched_symbols.map((sym, i) => (
-                    <span key={i} className="rounded-lg bg-blue-500/10 px-3 py-1 text-blue-400 border border-blue-500/20">
+                    <span key={i} className="rounded-md bg-neutral-900 px-2.5 py-1 text-neutral-300 border border-neutral-800">
                       {sym}
                     </span>
                   ))}
@@ -403,22 +389,22 @@ export default function PlannerAgentPage() {
           )}
 
           {/* Developer Approval Footer Bar */}
-          <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-950/40 via-neutral-900 to-amber-950/40 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xl backdrop-blur-xl">
+          <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
             <div>
-              <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-                Developer Approval Gate Active
+              <div className="flex items-center gap-2 text-neutral-200 font-semibold text-xs uppercase tracking-wider">
+                <span className="h-2 w-2 rounded-full bg-white"></span>
+                Developer Approval Gate
               </div>
-              <p className="text-xs text-neutral-300 mt-1">
-                Plan generated safely. Approve this implementation plan to transfer context directly to the Code Agent for execution.
+              <p className="text-xs text-neutral-400 mt-1">
+                Plan generated safely. Approve this implementation plan to transfer context directly to the Code Agent.
               </p>
             </div>
             <button
               onClick={handleApprovePlan}
-              className="rounded-xl bg-amber-500 px-6 py-3 text-sm font-bold text-neutral-950 hover:bg-amber-400 transition-all shadow-xl shadow-amber-950/60 shrink-0 flex items-center justify-center gap-2"
+              className="rounded-lg bg-white px-4 py-2 text-xs font-semibold text-black hover:bg-neutral-200 transition-all shadow-sm shrink-0 flex items-center justify-center gap-2"
             >
-              Approve Plan & Send to Coder Agent
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              Approve & Send to Coder Agent
+              <span>&rarr;</span>
             </button>
           </div>
         </div>
