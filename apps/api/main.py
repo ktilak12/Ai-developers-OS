@@ -181,6 +181,15 @@ async def make_github_request(endpoint: str, token: Optional[str] = None):
 def read_root():
     return {"status": "ok", "service": "AI Developer OS Backend API"}
 
+@app.get("/api/health")
+def health_check():
+    return {
+        "status": "ok",
+        "service": "AI Developer OS Backend API",
+        "timestamp": time.time(),
+        "version": "0.1.0"
+    }
+
 # --- GITHUB INTEGRATION ENDPOINTS (PHASE 1 / 2) ---
 
 @app.get("/api/github/repo")
