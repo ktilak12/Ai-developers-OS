@@ -1,7 +1,53 @@
+import re
 import time
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 from observability.models import WorkflowTrace, AgentSpan, ToolCallTrace, SpanStatus
+
+SENSITIVE_KEY_PATTERNS = {
+    "api_key", "apikey", "token", "access_token", "auth_token", "secret",
+    "password", "passwd", "credential", "authorization", "private_key",
+    "cookie", "session", "jwt", "client_secret"
+}
+
+BEARER_TOKEN_REGEX = re.compile(r"(Bearer\s+)[A-Za-z0-9_\-\.]+", re.IGNORECASE)
+BASIC_AUTH_REGEX = re.compile(r"(Basic\s+)[A-Za-z0-9+/=]+", re.IGNORECASE)
+JWT_REGEX = re.compile(r"ey[A-Za-z0-9-_]+\.ey[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+")
+AWS_KEY_REGEX = re.compile(r"\b(AKIA[0-9A-Z]{16})\b")
+
+
+def sanitize_trace_payload(data: Any, max_string_len: int = 5000, max_depth: int = 5) -> Any:
+    """
+    Recursively redacts sensitive credentials (tokens, passwords, api keys, bearer tokens)
+    and bounds string sizes to protect observability traces from secret exfiltration and memory exhaustion.
+    """
+    if max_depth <= 0:
+        return "[MAX_DEPTH_REACHED]"
+
+    if isinstance(data, dict):
+        sanitized = {}
+        for k, v in data.items():
+            k_str = str(k).lower()
+            if any(s in k_str for s in SENSITIVE_KEY_PATTERNS):
+                sanitized[k] = "[REDACTED]"
+            else:
+                sanitized[k] = sanitize_trace_payload(v, max_string_len, max_depth - 1)
+        return sanitized
+
+    if isinstance(data, list):
+        return [sanitize_trace_payload(item, max_string_len, max_depth - 1) for item in data]
+
+    if isinstance(data, str):
+        val = data
+        if len(val) > max_string_len:
+            val = val[:max_string_len] + "... [TRUNCATED]"
+        val = BEARER_TOKEN_REGEX.sub(r"\1[REDACTED]", val)
+        val = BASIC_AUTH_REGEX.sub(r"\1[REDACTED]", val)
+        val = JWT_REGEX.sub("[REDACTED_JWT]", val)
+        val = AWS_KEY_REGEX.sub("[REDACTED_AWS_KEY]", val)
+        return val
+
+    return data
 
 
 class AgentTracer:
@@ -19,6 +65,11 @@ class AgentTracer:
         self._active_spans: Dict[str, AgentSpan] = {}
 
     def start_workflow_trace(self, workflow_id: str, task_title: str) -> WorkflowTrace:
+        if len(self._active_traces) > 500:
+            oldest_keys = list(self._active_traces.keys())[:100]
+            for k in oldest_keys:
+                del self._active_traces[k]
+
         trace = WorkflowTrace(
             workflow_id=workflow_id,
             task_id=workflow_id.replace("wf-", "task-"),
@@ -33,11 +84,17 @@ class AgentTracer:
         agent_name: str,
         metadata: Optional[Dict[str, Any]] = None
     ) -> AgentSpan:
+        if len(self._active_spans) > 2000:
+            oldest_keys = list(self._active_spans.keys())[:400]
+            for k in oldest_keys:
+                del self._active_spans[k]
+
+        clean_metadata = sanitize_trace_payload(metadata or {})
         span = AgentSpan(
             agent_name=agent_name,
             status=SpanStatus.RUNNING,
             start_time=datetime.now(timezone.utc).isoformat(),
-            metadata=metadata or {}
+            metadata=clean_metadata
         )
         self._active_spans[f"{workflow_id}:{agent_name}"] = span
         return span
@@ -52,9 +109,10 @@ class AgentTracer:
         status: str = "success",
         error_message: Optional[str] = None
     ) -> ToolCallTrace:
+        clean_args = sanitize_trace_payload(arguments or {})
         tool_trace = ToolCallTrace(
             tool_name=tool_name,
-            arguments=arguments,
+            arguments=clean_args,
             status=status,
             duration_ms=duration_ms,
             error_message=error_message

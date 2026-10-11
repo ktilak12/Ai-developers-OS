@@ -98,3 +98,46 @@ def test_observability_api_error_handling():
     # 2. Oversized trace ID returns 400
     res_oversized = client.get(f"/api/observability/traces/{'x' * 101}")
     assert res_oversized.status_code == 400
+
+    # 3. Invalid format trace ID returns 400
+    res_bad_format = client.get("/api/observability/traces/trace-123;SELECT")
+    assert res_bad_format.status_code == 400
+
+
+def test_observability_security_hardening():
+    # 1. Credential and Bearer token redaction
+    tracer = AgentTracer()
+    span = tracer.start_agent_span("wf-sec-1", "Coder Agent", metadata={
+        "api_key": "sk-secret123456789",
+        "auth_token": "token-xyz",
+        "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.t-ID",
+        "normal_meta": "safe-value"
+    })
+    assert span.metadata["api_key"] == "[REDACTED]"
+    assert span.metadata["auth_token"] == "[REDACTED]"
+    assert span.metadata["authorization"] == "[REDACTED]"
+    assert span.metadata["normal_meta"] == "safe-value"
+
+    tool_trace = tracer.record_tool_call(
+        "wf-sec-1",
+        "Coder Agent",
+        "http.request",
+        arguments={
+            "headers": {"Authorization": "Bearer my-secret-jwt-token"},
+            "custom_log": "Client sent Bearer topsecret123 in payload",
+            "db_password": "super-secret-password-123",
+            "url": "https://api.example.com/checkout"
+        }
+    )
+    assert tool_trace.arguments["db_password"] == "[REDACTED]"
+    assert tool_trace.arguments["headers"]["Authorization"] == "[REDACTED]"
+    assert tool_trace.arguments["custom_log"] == "Client sent Bearer [REDACTED] in payload"
+    assert tool_trace.arguments["url"] == "https://api.example.com/checkout"
+
+    # 2. Path traversal in ObservabilityManager
+    temp_dir = tempfile.mkdtemp()
+    try:
+        with pytest.raises(ValueError, match="Path traversal detected"):
+            ObservabilityManager(temp_dir, storage_path=os.path.join(temp_dir, "..", "escaped.json"))
+    finally:
+        shutil.rmtree(temp_dir)

@@ -13,8 +13,14 @@ class ObservabilityManager:
     """
 
     def __init__(self, root_dir: str, storage_path: Optional[str] = None):
-        self.root_dir = root_dir
-        self.storage_path = storage_path or os.path.join(root_dir, ".observability", "traces.json")
+        self.root_dir = os.path.realpath(os.path.abspath(root_dir))
+        if storage_path:
+            norm_storage = os.path.realpath(os.path.abspath(storage_path))
+            if not (norm_storage == self.root_dir or norm_storage.startswith(self.root_dir + os.sep)):
+                raise ValueError("Path traversal detected: storage_path must reside within root_dir.")
+            self.storage_path = norm_storage
+        else:
+            self.storage_path = os.path.join(self.root_dir, ".observability", "traces.json")
         self.tracer = AgentTracer()
         self.traces: Dict[str, WorkflowTrace] = {}
         
@@ -136,10 +142,18 @@ class ObservabilityManager:
         self.traces[trace_182.workflow_id] = trace_182
 
     def record_workflow_trace(self, trace: WorkflowTrace):
+        if len(self.traces) > 500:
+            oldest_keys = sorted(self.traces.keys(), key=lambda k: self.traces[k].created_at)[:100]
+            for k in oldest_keys:
+                del self.traces[k]
         self.traces[trace.workflow_id] = trace
         self.save_to_storage()
 
     def get_trace(self, workflow_id_or_trace_id: str) -> Optional[WorkflowTrace]:
+        if not workflow_id_or_trace_id or not isinstance(workflow_id_or_trace_id, str):
+            return None
+        if "\0" in workflow_id_or_trace_id or len(workflow_id_or_trace_id) > 100:
+            return None
         for trace in self.traces.values():
             if trace.workflow_id == workflow_id_or_trace_id or trace.trace_id == workflow_id_or_trace_id:
                 return trace
