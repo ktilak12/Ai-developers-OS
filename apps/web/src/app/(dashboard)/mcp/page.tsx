@@ -210,7 +210,7 @@ export default function MCPHubPage() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-3xl font-bold text-white tracking-tight">MCP Tool Hub</h1>
-            <span className="inline-flex items-center rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-400 border border-indigo-500/20">
+            <span className="inline-flex items-center rounded-full bg-neutral-900 px-3 py-1 text-xs font-mono text-neutral-300 border border-neutral-800">
               Phase 10 Active
             </span>
           </div>
@@ -221,7 +221,7 @@ export default function MCPHubPage() {
 
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-2 rounded-xl bg-neutral-900 border border-neutral-800 px-3.5 py-1.5 text-xs font-mono text-neutral-300">
-            <span className="h-2 w-2 rounded-full bg-indigo-400"></span>
+            <span className="h-1.5 w-1.5 rounded-full bg-white"></span>
             10 Tools Registered
           </span>
         </div>
@@ -235,9 +235,9 @@ export default function MCPHubPage() {
           { server: "Docker MCP", tools: 2, desc: "run_container, get_status" },
           { server: "Terminal MCP", tools: 2, desc: "execute_shell, get_env" }
         ].map((s, idx) => (
-          <div key={idx} className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-4 space-y-1">
-            <span className="text-xs font-semibold uppercase tracking-wider text-indigo-400">{s.server}</span>
-            <p className="text-xl font-bold text-white">{s.tools} Tools</p>
+          <div key={idx} className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4 space-y-1">
+            <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">{s.server}</span>
+            <p className="text-xl font-bold text-white font-mono">{s.tools} Tools</p>
             <span className="text-xs text-neutral-500 font-mono">{s.desc}</span>
           </div>
         ))}
@@ -247,30 +247,30 @@ export default function MCPHubPage() {
       <div className="flex items-center gap-2 border-b border-neutral-800 pb-2">
         <button
           onClick={() => setActiveTab("catalog")}
-          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
+          className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
             activeTab === "catalog"
-              ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/30"
-              : "text-neutral-400 hover:text-white"
+              ? "bg-neutral-850 text-white border border-neutral-700 shadow-sm"
+              : "text-neutral-400 hover:text-white hover:bg-neutral-900/50"
           }`}
         >
           Tools Catalog ({tools.length})
         </button>
         <button
           onClick={() => setActiveTab("console")}
-          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
+          className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
             activeTab === "console"
-              ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/30"
-              : "text-neutral-400 hover:text-white"
+              ? "bg-neutral-850 text-white border border-neutral-700 shadow-sm"
+              : "text-neutral-400 hover:text-white hover:bg-neutral-900/50"
           }`}
         >
           MCP Test Console
         </button>
         <button
           onClick={() => setActiveTab("architecture")}
-          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
+          className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
             activeTab === "architecture"
-              ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/30"
-              : "text-neutral-400 hover:text-white"
+              ? "bg-neutral-850 text-white border border-neutral-700 shadow-sm"
+              : "text-neutral-400 hover:text-white hover:bg-neutral-900/50"
           }`}
         >
           Protocol Architecture
@@ -281,10 +281,10 @@ export default function MCPHubPage() {
       {activeTab === "catalog" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {tools.map((t, idx) => (
-            <div key={idx} className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-5 space-y-3 hover:border-neutral-700 transition-colors">
+            <div key={idx} className="rounded-2xl border border-neutral-800 bg-neutral-950 p-5 space-y-3 hover:border-neutral-700 transition-colors">
               <div className="flex items-center justify-between">
                 <span className="font-mono text-base font-bold text-white">{t.name}()</span>
-                <span className="rounded bg-indigo-500/10 px-2 py-0.5 text-xs text-indigo-400 border border-indigo-500/20 font-mono uppercase">
+                <span className="rounded bg-neutral-900 px-2 py-0.5 text-xs text-neutral-300 border border-neutral-800 font-mono uppercase">
                   {t.server}
                 </span>
               </div>
@@ -298,7 +298,7 @@ export default function MCPHubPage() {
                     handleSelectTool(t.name);
                     setActiveTab("console");
                   }}
-                  className="rounded-lg bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 px-3 py-1 font-semibold hover:bg-indigo-600/30 transition-colors"
+                  className="rounded-lg bg-neutral-900 text-neutral-200 border border-neutral-800 px-3 py-1 font-mono font-medium hover:bg-neutral-800 hover:text-white transition-colors"
                 >
                   Test in Console →
                 </button>
@@ -311,7 +311,7 @@ export default function MCPHubPage() {
       {/* Tab: Test Console */}
       {activeTab === "console" && (
         <div className="space-y-6">
-          <div className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-6 space-y-4">
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 space-y-4">
             <h3 className="text-sm font-bold text-white uppercase tracking-wider">Invoke MCP Tool Dispatcher</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -319,7 +319,7 @@ export default function MCPHubPage() {
                 <select
                   value={selectedTool}
                   onChange={(e) => handleSelectTool(e.target.value)}
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-3 text-white text-xs font-mono focus:border-indigo-500 focus:outline-none"
+                  className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-3 text-white text-xs font-mono focus:border-neutral-500 focus:outline-none"
                 >
                   {tools.map((t, i) => (
                     <option key={i} value={t.name}>
@@ -334,7 +334,7 @@ export default function MCPHubPage() {
                   rows={4}
                   value={argsJson}
                   onChange={(e) => setArgsJson(e.target.value)}
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-3 text-white text-xs font-mono focus:border-indigo-500 focus:outline-none"
+                  className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-3 text-white text-xs font-mono focus:border-neutral-500 focus:outline-none"
                 />
               </div>
             </div>
@@ -343,7 +343,7 @@ export default function MCPHubPage() {
               <button
                 onClick={handleCallTool}
                 disabled={loading}
-                className="rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-950/40 flex items-center gap-2 disabled:opacity-50"
+                className="rounded-xl bg-white px-6 py-2.5 text-sm font-semibold text-black hover:bg-neutral-200 transition-colors shadow-sm flex items-center gap-2 disabled:opacity-50"
               >
                 {loading ? "Dispatching..." : "Invoke Tool via MCP"}
               </button>
@@ -352,10 +352,11 @@ export default function MCPHubPage() {
 
           {/* Response Window */}
           {executionResult && (
-            <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-5 font-mono text-xs overflow-x-auto shadow-2xl leading-relaxed">
+            <div className="rounded-2xl border border-neutral-800 bg-black p-5 font-mono text-xs overflow-x-auto shadow-2xl leading-relaxed">
               <div className="flex items-center justify-between border-b border-neutral-800 pb-3 mb-4 text-neutral-500">
                 <span className="text-neutral-400">MCP Response Envelope</span>
-                <span className={`font-bold ${executionResult.success ? "text-emerald-400" : "text-red-400"}`}>
+                <span className={`inline-flex items-center gap-1.5 font-medium ${executionResult.success ? "text-neutral-300" : "text-red-400"}`}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${executionResult.success ? "bg-emerald-500" : "bg-red-500"}`}></span>
                   {executionResult.success ? "200 SUCCESS" : "ERROR"}
                 </span>
               </div>
@@ -369,12 +370,12 @@ export default function MCPHubPage() {
 
       {/* Tab: Protocol Architecture */}
       {activeTab === "architecture" && (
-        <div className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-6 space-y-4">
+        <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 space-y-4">
           <h3 className="text-sm font-bold text-white uppercase tracking-wider">Decoupled Tool Layer Architecture</h3>
           <p className="text-xs text-neutral-400">
             Agents reason; tools act. Rather than hardcoding custom APIs inside each agent, all actions flow through the unified MCP Protocol Envelope.
           </p>
-          <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-4 font-mono text-xs text-neutral-300 leading-relaxed overflow-x-auto">
+          <div className="rounded-xl border border-neutral-800 bg-black p-4 font-mono text-xs text-neutral-300 leading-relaxed overflow-x-auto">
             <pre>{`AI Agent (Planner / Coder / Tester / Security)
        │
        ▼
