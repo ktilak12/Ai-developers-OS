@@ -52,12 +52,25 @@ export default function RepositoryExplorerPage() {
   };
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const urlOwner = params.get("owner");
+      const urlRepo = params.get("repo");
+      if (urlOwner && urlRepo) {
+        setOwner(urlOwner);
+        setRepo(urlRepo);
+        setRepoInput(`${urlOwner}/${urlRepo}`);
+        loadRepositoryData(urlOwner, urlRepo);
+        return;
+      }
+    }
     loadRepositoryData(owner, repo);
   }, []);
 
   const handleConnectRepo = (e: React.FormEvent) => {
     e.preventDefault();
-    const parts = repoInput.split("/").map(s => s.trim()).filter(Boolean);
+    const cleaned = repoInput.trim().replace(/^https?:\/\/github\.com\//i, "").replace(/\.git$/i, "");
+    const parts = cleaned.split("/").map(s => s.trim()).filter(Boolean);
     if (parts.length >= 2) {
       const newOwner = parts[parts.length - 2];
       const newRepo = parts[parts.length - 1];
@@ -89,24 +102,44 @@ export default function RepositoryExplorerPage() {
           <p className="text-neutral-400 mt-1">Inspect live code, branches, commits, issues, and PRs from GitHub.</p>
         </div>
 
-        <form onSubmit={handleConnectRepo} className="flex gap-2">
-          <div className="relative">
-            <input 
-              type="text"
-              value={repoInput}
-              onChange={(e) => setRepoInput(e.target.value)}
-              placeholder="owner/repository"
-              className="w-64 rounded-xl border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-sm text-white placeholder-neutral-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
-            />
+        <div className="flex flex-col md:items-end gap-2">
+          <form onSubmit={handleConnectRepo} className="flex gap-2">
+            <div className="relative">
+              <input 
+                type="text"
+                value={repoInput}
+                onChange={(e) => setRepoInput(e.target.value)}
+                placeholder="owner/repository or URL"
+                className="w-64 rounded-xl border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-sm text-white placeholder-neutral-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
+              />
+            </div>
+            <button 
+              type="submit"
+              className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-lg shadow-blue-900/20 flex items-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+              Load
+            </button>
+          </form>
+          <div className="flex items-center gap-2 text-xs text-neutral-400">
+            <span>Quick presets:</span>
+            <button 
+              type="button" 
+              onClick={() => { setRepoInput("ktilak12/Ai-developers-OS"); setOwner("ktilak12"); setRepo("Ai-developers-OS"); loadRepositoryData("ktilak12", "Ai-developers-OS"); }}
+              className="text-blue-400 hover:text-blue-300 underline"
+            >
+              ktilak12/Ai-developers-OS
+            </button>
+            <span>•</span>
+            <button 
+              type="button" 
+              onClick={() => { setRepoInput("vercel/next.js"); setOwner("vercel"); setRepo("next.js"); loadRepositoryData("vercel", "next.js"); }}
+              className="hover:text-neutral-200 underline"
+            >
+              vercel/next.js
+            </button>
           </div>
-          <button 
-            type="submit"
-            className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-lg shadow-blue-900/20 flex items-center gap-2"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
-            Load
-          </button>
-        </form>
+        </div>
       </div>
 
       {/* Repository Card Header */}
