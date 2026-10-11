@@ -126,11 +126,11 @@ export default function ObservabilityPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-800 pb-6">
         <div>
           <div className="flex items-center gap-3">
-            <div className="h-3 w-3 rounded-full bg-amber-500 animate-pulse" />
-            <h1 className="text-3xl font-extrabold tracking-tight text-white">
+            <div className="h-1.5 w-1.5 rounded-full bg-white" />
+            <h1 className="text-3xl font-bold tracking-tight text-white">
               Agent Observability & Tracing
             </h1>
-            <span className="text-xs px-2.5 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 font-mono">
+            <span className="text-xs px-2.5 py-0.5 rounded-full border border-neutral-800 bg-neutral-900 text-neutral-300 font-mono">
               OpenTelemetry v1.28
             </span>
           </div>
@@ -140,7 +140,7 @@ export default function ObservabilityPage() {
         </div>
         <button
           onClick={fetchData}
-          className="px-4 py-2 text-xs font-medium text-neutral-300 bg-neutral-900 border border-neutral-700 hover:bg-neutral-800 rounded-lg transition-colors flex items-center gap-2 self-start md:self-auto"
+          className="px-4 py-2 text-xs font-medium text-neutral-300 bg-neutral-900 border border-neutral-800 hover:bg-neutral-850 hover:text-white rounded-lg transition-colors flex items-center gap-2 self-start md:self-auto"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
           Refresh Telemetry
@@ -150,28 +150,28 @@ export default function ObservabilityPage() {
       {/* KPI Metrics Cards */}
       {metrics && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-5 rounded-2xl bg-neutral-900/60 border border-neutral-800/80 backdrop-blur-xl">
-            <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Success Rate</p>
+          <div className="p-5 rounded-2xl bg-neutral-950 border border-neutral-800">
+            <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400">Success Rate</p>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-emerald-400">{metrics.task_success_rate}%</span>
+              <span className="text-3xl font-bold text-white font-mono">{metrics.task_success_rate}%</span>
               <span className="text-xs text-neutral-500 font-mono">({metrics.successful_tasks}/{metrics.total_tasks_executed})</span>
             </div>
             <p className="text-xs text-neutral-500 mt-2">Autonomous completion rate</p>
           </div>
 
-          <div className="p-5 rounded-2xl bg-neutral-900/60 border border-neutral-800/80 backdrop-blur-xl">
-            <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Avg Latency</p>
+          <div className="p-5 rounded-2xl bg-neutral-950 border border-neutral-800">
+            <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400">Avg Latency</p>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-blue-400">{metrics.avg_execution_time_sec}s</span>
-              <span className="text-xs text-emerald-400">⚡ -35% vs baseline</span>
+              <span className="text-3xl font-bold text-white font-mono">{metrics.avg_execution_time_sec}s</span>
+              <span className="text-xs text-neutral-400 font-mono">⚡ -35% vs baseline</span>
             </div>
             <p className="text-xs text-neutral-500 mt-2">End-to-end task duration</p>
           </div>
 
-          <div className="p-5 rounded-2xl bg-neutral-900/60 border border-neutral-800/80 backdrop-blur-xl">
-            <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Token Usage</p>
+          <div className="p-5 rounded-2xl bg-neutral-950 border border-neutral-800">
+            <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400">Token Usage</p>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-purple-400">
+              <span className="text-3xl font-bold text-white font-mono">
                 {(metrics.total_tokens_consumed / 1000).toFixed(1)}k
               </span>
               <span className="text-xs text-neutral-500">tokens</span>
@@ -179,10 +179,10 @@ export default function ObservabilityPage() {
             <p className="text-xs text-neutral-500 mt-2">Total prompt & output tokens</p>
           </div>
 
-          <div className="p-5 rounded-2xl bg-neutral-900/60 border border-neutral-800/80 backdrop-blur-xl">
-            <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Estimated Cost</p>
+          <div className="p-5 rounded-2xl bg-neutral-950 border border-neutral-800">
+            <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400">Estimated Cost</p>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-amber-400">${metrics.total_cost_usd.toFixed(4)}</span>
+              <span className="text-3xl font-bold text-white font-mono">${metrics.total_cost_usd.toFixed(4)}</span>
               <span className="text-xs text-neutral-500">USD</span>
             </div>
             <p className="text-xs text-neutral-500 mt-2">$3.00/M in • $15.00/M out</p>
@@ -212,26 +212,27 @@ export default function ObservabilityPage() {
                   }}
                   className={`p-4 rounded-xl border transition-all cursor-pointer ${
                     isSelected
-                      ? "bg-neutral-800/90 border-blue-500/60 shadow-lg shadow-blue-500/5 ring-1 ring-blue-500/20"
-                      : "bg-neutral-900/40 border-neutral-800/80 hover:bg-neutral-900/80 hover:border-neutral-700"
+                      ? "bg-neutral-850 border-neutral-700 shadow-sm"
+                      : "bg-neutral-950 border-neutral-800 hover:bg-neutral-900 hover:border-neutral-700"
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-mono text-neutral-500">{trace.workflow_id}</span>
-                    <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span className="text-xs px-2 py-0.5 rounded-full font-mono bg-neutral-900 text-neutral-300 border border-neutral-800 flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                       {trace.status}
                     </span>
                   </div>
                   <h3 className="text-sm font-semibold text-white mt-2 line-clamp-1">
                     {trace.task_title}
                   </h3>
-                  <div className="mt-3 flex items-center justify-between text-xs text-neutral-400">
+                  <div className="mt-3 flex items-center justify-between text-xs text-neutral-400 font-mono">
                     <span className="flex items-center gap-1.5">
                       <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                       {trace.total_duration_sec}s
                     </span>
-                    <span className="font-mono text-purple-400">{trace.total_tokens.toLocaleString()} tok</span>
-                    <span className="font-mono text-amber-400">${trace.total_cost_usd}</span>
+                    <span className="text-neutral-300">{trace.total_tokens.toLocaleString()} tok</span>
+                    <span className="text-neutral-300">${trace.total_cost_usd}</span>
                   </div>
                 </div>
               );
@@ -244,10 +245,10 @@ export default function ObservabilityPage() {
           {selectedTrace ? (
             <div className="space-y-6">
               {/* Selected Trace Header Card */}
-              <div className="p-6 rounded-2xl bg-neutral-900/60 border border-neutral-800/80 backdrop-blur-xl">
+              <div className="p-6 rounded-2xl bg-neutral-950 border border-neutral-800">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-neutral-800 pb-4">
                   <div>
-                    <span className="text-xs font-mono text-blue-400">{selectedTrace.trace_id}</span>
+                    <span className="text-xs font-mono text-neutral-400">{selectedTrace.trace_id}</span>
                     <h2 className="text-lg font-bold text-white mt-1">{selectedTrace.task_title}</h2>
                   </div>
                   <div className="flex items-center gap-4 text-xs font-mono">
@@ -257,11 +258,11 @@ export default function ObservabilityPage() {
                     </div>
                     <div className="text-right">
                       <p className="text-neutral-500">Tokens</p>
-                      <p className="text-purple-400 font-bold">{selectedTrace.total_tokens.toLocaleString()}</p>
+                      <p className="text-white font-bold">{selectedTrace.total_tokens.toLocaleString()}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-neutral-500">Cost</p>
-                      <p className="text-amber-400 font-bold">${selectedTrace.total_cost_usd}</p>
+                      <p className="text-white font-bold">${selectedTrace.total_cost_usd}</p>
                     </div>
                   </div>
                 </div>
@@ -283,26 +284,26 @@ export default function ObservabilityPage() {
                           onClick={() => setSelectedSpan(span)}
                           className={`p-3 rounded-xl border transition-all cursor-pointer ${
                             isSpanActive
-                              ? "bg-neutral-800/80 border-blue-500/50"
-                              : "bg-neutral-900/30 border-neutral-800 hover:bg-neutral-800/40"
+                              ? "bg-neutral-850 border-neutral-700"
+                              : "bg-neutral-900 border-neutral-800 hover:bg-neutral-850"
                           }`}
                         >
                           <div className="flex items-center justify-between text-xs">
                             <span className="font-semibold text-white flex items-center gap-2">
-                              <span className="h-2 w-2 rounded-full bg-blue-500" />
+                              <span className="h-1.5 w-1.5 rounded-full bg-white" />
                               {span.agent_name}
                             </span>
                             <div className="flex items-center gap-3 text-neutral-400 font-mono">
                               <span>{span.duration_sec}s</span>
                               <span>{span.tool_calls?.length || 0} tools</span>
-                              <span className="text-amber-400">${span.estimated_cost_usd}</span>
+                              <span className="text-neutral-300 font-mono">${span.estimated_cost_usd}</span>
                             </div>
                           </div>
 
                           {/* Visual Duration Bar */}
-                          <div className="w-full bg-neutral-800 h-2 rounded-full mt-2 overflow-hidden">
+                          <div className="w-full bg-neutral-900 h-1.5 rounded-full mt-2 overflow-hidden border border-neutral-800">
                             <div
-                              className="bg-gradient-to-r from-blue-500 to-indigo-500 h-full rounded-full transition-all duration-500"
+                              className="bg-white h-full rounded-full transition-all duration-500"
                               style={{ width: `${widthPct}%` }}
                             />
                           </div>
@@ -315,18 +316,18 @@ export default function ObservabilityPage() {
 
               {/* Granular Tool Call Inspector */}
               {selectedSpan && (
-                <div className="p-6 rounded-2xl bg-neutral-900/60 border border-neutral-800/80 backdrop-blur-xl space-y-4">
+                <div className="p-6 rounded-2xl bg-neutral-950 border border-neutral-800 space-y-4">
                   <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
                     <div>
                       <h3 className="text-base font-bold text-white flex items-center gap-2">
-                        Tool Calls: <span className="text-blue-400">{selectedSpan.agent_name}</span>
+                        Tool Calls: <span className="text-white font-mono">{selectedSpan.agent_name}</span>
                       </h3>
                       <p className="text-xs text-neutral-400 mt-0.5">
                         {selectedSpan.tool_calls?.length || 0} tool execution(s) recorded in span
                       </p>
                     </div>
                     <div className="text-xs font-mono text-neutral-400">
-                      Tokens: <span className="text-purple-400">{selectedSpan.input_tokens + selectedSpan.output_tokens}</span> (in: {selectedSpan.input_tokens}, out: {selectedSpan.output_tokens})
+                      Tokens: <span className="text-white font-medium">{selectedSpan.input_tokens + selectedSpan.output_tokens}</span> (in: {selectedSpan.input_tokens}, out: {selectedSpan.output_tokens})
                     </div>
                   </div>
 
@@ -335,18 +336,18 @@ export default function ObservabilityPage() {
                       {selectedSpan.tool_calls.map((tool, tIdx) => (
                         <div
                           key={tIdx}
-                          className="p-3.5 rounded-xl bg-neutral-950/70 border border-neutral-800 space-y-2 font-mono text-xs"
+                          className="p-3.5 rounded-xl bg-neutral-900 border border-neutral-800 space-y-2 font-mono text-xs"
                         >
                           <div className="flex items-center justify-between">
-                            <span className="font-bold text-emerald-400">{tool.tool_name}</span>
+                            <span className="font-semibold text-white">{tool.tool_name}</span>
                             <div className="flex items-center gap-2">
                               <span className="text-neutral-400">{tool.duration_ms}ms</span>
-                              <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px]">
+                              <span className="px-2 py-0.5 rounded bg-neutral-950 text-neutral-300 border border-neutral-800 text-[10px]">
                                 {tool.status}
                               </span>
                             </div>
                           </div>
-                          <pre className="text-neutral-300 bg-neutral-900/60 p-2.5 rounded-lg overflow-x-auto text-[11px] border border-neutral-800/60">
+                          <pre className="text-neutral-300 bg-neutral-950 p-2.5 rounded-lg overflow-x-auto text-[11px] border border-neutral-800">
                             {JSON.stringify(tool.arguments, null, 2)}
                           </pre>
                         </div>
@@ -361,7 +362,7 @@ export default function ObservabilityPage() {
               )}
             </div>
           ) : (
-            <div className="text-center py-16 text-neutral-500 border border-neutral-800 rounded-2xl">
+            <div className="text-center py-16 text-neutral-500 border border-neutral-800 rounded-2xl bg-neutral-950">
               Select a workflow trace to inspect spans and tool calls.
             </div>
           )}
