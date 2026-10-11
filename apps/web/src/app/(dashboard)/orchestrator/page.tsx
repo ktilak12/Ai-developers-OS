@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 
 interface AgentTrace {
   step_id: string;
@@ -36,7 +37,8 @@ interface WorkflowState {
   created_at: string;
 }
 
-export default function MultiAgentOrchestratorPage() {
+function MultiAgentOrchestratorContent() {
+  const searchParams = useSearchParams();
   const [taskInput, setTaskInput] = useState("Fix checkout failure when a user applies an expired coupon.");
   const [autoApprove, setAutoApprove] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
@@ -134,15 +136,15 @@ export default function MultiAgentOrchestratorPage() {
 
   const [approvalNotes, setApprovalNotes] = useState("");
 
-  const handleRunWorkflow = async () => {
-    if (!taskInput.trim()) return;
+  const runWorkflowWithTask = async (task: string) => {
+    if (!task.trim()) return;
     setIsRunning(true);
     try {
       const res = await fetch("http://localhost:8000/api/orchestrator/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          task_request: taskInput,
+          task_request: task,
           auto_approve: autoApprove
         }),
       });
@@ -156,6 +158,21 @@ export default function MultiAgentOrchestratorPage() {
       setIsRunning(false);
     }
   };
+
+  const handleRunWorkflow = () => {
+    runWorkflowWithTask(taskInput);
+  };
+
+  useEffect(() => {
+    const taskParam = searchParams.get("task");
+    const runParam = searchParams.get("run");
+    if (taskParam) {
+      setTaskInput(taskParam);
+      if (runParam === "true") {
+        runWorkflowWithTask(taskParam);
+      }
+    }
+  }, [searchParams]);
 
   const handleApprove = async (approve: boolean) => {
     try {
@@ -540,5 +557,13 @@ export default function MultiAgentOrchestratorPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function MultiAgentOrchestratorPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-neutral-400">Loading Multi-Agent Orchestrator...</div>}>
+      <MultiAgentOrchestratorContent />
+    </Suspense>
   );
 }
