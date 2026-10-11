@@ -156,7 +156,7 @@ export default function BrowserAgentPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-800 pb-5">
         <div>
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-teal-500/10 text-teal-400 border border-teal-500/20">
+            <div className="p-2 rounded-lg bg-neutral-900 text-neutral-300 border border-neutral-800">
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
             </div>
             <div>
@@ -171,7 +171,7 @@ export default function BrowserAgentPage() {
             <button
               onClick={() => setDeviceViewport("desktop")}
               className={`px-3 py-1 rounded-md font-medium transition-colors ${
-                deviceViewport === "desktop" ? "bg-teal-600 text-white" : "text-neutral-400 hover:text-white"
+                deviceViewport === "desktop" ? "bg-white text-black font-semibold shadow-sm" : "text-neutral-400 hover:text-white"
               }`}
             >
               Desktop (1920x1080)
@@ -179,7 +179,7 @@ export default function BrowserAgentPage() {
             <button
               onClick={() => setDeviceViewport("tablet")}
               className={`px-3 py-1 rounded-md font-medium transition-colors ${
-                deviceViewport === "tablet" ? "bg-teal-600 text-white" : "text-neutral-400 hover:text-white"
+                deviceViewport === "tablet" ? "bg-white text-black font-semibold shadow-sm" : "text-neutral-400 hover:text-white"
               }`}
             >
               Tablet (768x1024)
@@ -187,7 +187,7 @@ export default function BrowserAgentPage() {
             <button
               onClick={() => setDeviceViewport("mobile")}
               className={`px-3 py-1 rounded-md font-medium transition-colors ${
-                deviceViewport === "mobile" ? "bg-teal-600 text-white" : "text-neutral-400 hover:text-white"
+                deviceViewport === "mobile" ? "bg-white text-black font-semibold shadow-sm" : "text-neutral-400 hover:text-white"
               }`}
             >
               Mobile (375x667)
@@ -197,11 +197,11 @@ export default function BrowserAgentPage() {
           <button
             onClick={handleRunJourney}
             disabled={isRunning}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-teal-500 to-emerald-600 text-white text-xs font-semibold rounded-lg hover:from-teal-600 hover:to-emerald-700 disabled:opacity-50 transition-all shadow-lg shadow-teal-500/20"
+            className="flex items-center gap-2 px-4 py-2 bg-white text-black text-xs font-semibold rounded-lg hover:bg-neutral-200 disabled:opacity-50 transition-colors shadow-sm"
           >
             {isRunning ? (
               <>
-                <svg className="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                <svg className="animate-spin h-3.5 w-3.5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                 <span>Executing Journey...</span>
               </>
             ) : (
@@ -219,9 +219,9 @@ export default function BrowserAgentPage() {
         {/* Left Column: Config & Step Timeline */}
         <div className="lg:col-span-5 space-y-6">
           {/* Target URL & Scenario Box */}
-          <div className="bg-neutral-900/60 border border-neutral-800 rounded-xl p-5 space-y-4">
+          <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-5 space-y-4">
             <h2 className="text-sm font-semibold text-white flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-teal-400"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-400"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
               Verification Target & Scenario
             </h2>
 
@@ -232,7 +232,7 @@ export default function BrowserAgentPage() {
                 value={targetUrl}
                 onChange={(e) => setTargetUrl(e.target.value)}
                 placeholder="http://localhost:3000/login"
-                className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-xs font-mono text-neutral-200 focus:outline-none focus:border-teal-500"
+                className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 text-xs font-mono text-neutral-200 focus:outline-none focus:border-neutral-500"
               />
             </div>
 
@@ -243,20 +243,21 @@ export default function BrowserAgentPage() {
                 value={journeyDescription}
                 onChange={(e) => setJourneyDescription(e.target.value)}
                 placeholder="Describe user flow in plain English or structured steps..."
-                className="w-full bg-neutral-950 border border-neutral-800 rounded-lg p-3 text-xs text-neutral-200 focus:outline-none focus:border-teal-500 font-mono leading-relaxed"
+                className="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-3 text-xs text-neutral-200 focus:outline-none focus:border-neutral-500 font-mono leading-relaxed"
               />
             </div>
           </div>
 
           {/* Action Step Stream */}
-          <div className="bg-neutral-900/60 border border-neutral-800 rounded-xl p-5 space-y-4">
+          <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-5 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold text-white flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-400"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
                 Action Execution Pipeline
               </h2>
               {result && (
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-neutral-900 text-neutral-300 border border-neutral-800 font-mono flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                   {result.passed_steps} / {result.total_steps} Passed ({result.duration_ms}ms)
                 </span>
               )}
@@ -266,21 +267,21 @@ export default function BrowserAgentPage() {
               {result?.steps.map((step) => (
                 <div
                   key={step.step_number}
-                  className="bg-neutral-950/80 border border-neutral-800/80 rounded-lg p-3 flex items-start gap-3 text-xs"
+                  className="bg-neutral-900/60 border border-neutral-800 rounded-lg p-3 flex items-start gap-3 text-xs"
                 >
                   <div className="mt-0.5 flex-shrink-0">
                     {step.status === "success" && (
-                      <span className="flex h-5 w-5 rounded-full bg-emerald-500/20 text-emerald-400 items-center justify-center font-bold text-[10px]">
+                      <span className="flex h-5 w-5 rounded-full bg-neutral-800 border border-neutral-700 text-neutral-200 items-center justify-center font-bold text-[10px]">
                         ✓
                       </span>
                     )}
                     {step.status === "failed" && (
-                      <span className="flex h-5 w-5 rounded-full bg-rose-500/20 text-rose-400 items-center justify-center font-bold text-[10px]">
+                      <span className="flex h-5 w-5 rounded-full bg-neutral-800 border border-neutral-700 text-neutral-200 items-center justify-center font-bold text-[10px]">
                         ✕
                       </span>
                     )}
                     {step.status === "running" && (
-                      <span className="flex h-5 w-5 rounded-full bg-teal-500/20 text-teal-400 items-center justify-center font-bold text-[10px] animate-pulse">
+                      <span className="flex h-5 w-5 rounded-full bg-neutral-800 border border-neutral-700 text-neutral-300 items-center justify-center font-bold text-[10px] animate-pulse">
                         ●
                       </span>
                     )}
@@ -297,12 +298,12 @@ export default function BrowserAgentPage() {
                     </div>
                     {step.target && (
                       <p className="text-neutral-400 font-mono text-[11px] mt-0.5 truncate">
-                        Target: <span className="text-teal-300">{step.target}</span>
+                        Target: <span className="text-neutral-200 font-medium">{step.target}</span>
                       </p>
                     )}
                     {step.value && (
                       <p className="text-neutral-500 font-mono text-[11px]">
-                        Value: <span className="text-amber-300">{step.value}</span>
+                        Value: <span className="text-neutral-300 font-mono">{step.value}</span>
                       </p>
                     )}
                   </div>
@@ -314,15 +315,15 @@ export default function BrowserAgentPage() {
 
         {/* Right Column: Interactive Browser Viewport / Live DOM / Log Stream */}
         <div className="lg:col-span-7 space-y-4">
-          <div className="bg-neutral-900/60 border border-neutral-800 rounded-xl overflow-hidden flex flex-col h-full min-h-[580px]">
+          <div className="bg-neutral-950 border border-neutral-800 rounded-xl overflow-hidden flex flex-col h-full min-h-[580px]">
             {/* Viewport Header Bar */}
             <div className="bg-neutral-900 px-4 py-3 border-b border-neutral-800 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-rose-500/80 inline-block"></span>
-                <span className="h-3 w-3 rounded-full bg-amber-500/80 inline-block"></span>
-                <span className="h-3 w-3 rounded-full bg-emerald-500/80 inline-block"></span>
+                <span className="h-2.5 w-2.5 rounded-full bg-neutral-700 inline-block"></span>
+                <span className="h-2.5 w-2.5 rounded-full bg-neutral-700 inline-block"></span>
+                <span className="h-2.5 w-2.5 rounded-full bg-neutral-700 inline-block"></span>
                 <div className="ml-3 px-3 py-1 bg-neutral-950 border border-neutral-800 rounded-md text-[11px] font-mono text-neutral-400 flex items-center gap-2 min-w-[280px]">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-400"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                   <span className="truncate">{targetUrl}</span>
                 </div>
               </div>
@@ -332,7 +333,7 @@ export default function BrowserAgentPage() {
                 <button
                   onClick={() => setActiveTab("viewport")}
                   className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                    activeTab === "viewport" ? "bg-neutral-800 text-teal-400" : "text-neutral-400 hover:text-white"
+                    activeTab === "viewport" ? "bg-neutral-850 text-white shadow-sm" : "text-neutral-400 hover:text-white"
                   }`}
                 >
                   Live Viewport
@@ -340,7 +341,7 @@ export default function BrowserAgentPage() {
                 <button
                   onClick={() => setActiveTab("dom")}
                   className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                    activeTab === "dom" ? "bg-neutral-800 text-teal-400" : "text-neutral-400 hover:text-white"
+                    activeTab === "dom" ? "bg-neutral-850 text-white shadow-sm" : "text-neutral-400 hover:text-white"
                   }`}
                 >
                   DOM Tree
@@ -348,7 +349,7 @@ export default function BrowserAgentPage() {
                 <button
                   onClick={() => setActiveTab("logs")}
                   className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                    activeTab === "logs" ? "bg-neutral-800 text-teal-400" : "text-neutral-400 hover:text-white"
+                    activeTab === "logs" ? "bg-neutral-850 text-white shadow-sm" : "text-neutral-400 hover:text-white"
                   }`}
                 >
                   Console ({result?.console_logs?.length || 0})
@@ -357,10 +358,10 @@ export default function BrowserAgentPage() {
             </div>
 
             {/* Viewport Content Area */}
-            <div className="flex-1 p-6 bg-neutral-950 flex flex-col justify-center items-center overflow-auto">
+            <div className="flex-1 p-6 bg-black flex flex-col justify-center items-center overflow-auto">
               {activeTab === "viewport" && (
                 <div
-                  className={`border border-neutral-800 rounded-xl bg-neutral-900 shadow-2xl p-6 transition-all flex flex-col ${
+                  className={`border border-neutral-800 rounded-xl bg-neutral-950 shadow-2xl p-6 transition-all flex flex-col ${
                     deviceViewport === "desktop"
                       ? "w-full max-w-2xl h-[420px]"
                       : deviceViewport === "tablet"
@@ -370,18 +371,18 @@ export default function BrowserAgentPage() {
                 >
                   <div className="flex items-center justify-between border-b border-neutral-800 pb-3 mb-4">
                     <div className="flex items-center gap-2">
-                      <div className="h-6 w-6 rounded-md bg-blue-600 flex items-center justify-center text-xs font-bold text-white">
+                      <div className="h-6 w-6 rounded-md bg-white flex items-center justify-center text-xs font-bold text-black">
                         OS
                       </div>
                       <span className="font-semibold text-xs text-white">AI Developer OS Dashboard</span>
                     </div>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-neutral-900 text-neutral-300 border border-neutral-800 font-mono">
                       Verified 200 OK
                     </span>
                   </div>
 
                   <div className="flex-1 flex flex-col justify-center items-center space-y-3 text-center">
-                    <div className="h-12 w-12 rounded-full bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400">
+                    <div className="h-12 w-12 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center text-white">
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
                     </div>
                     <h3 className="text-sm font-bold text-white">Headless Journey Verified</h3>
@@ -390,7 +391,7 @@ export default function BrowserAgentPage() {
                     </p>
                   </div>
 
-                  <div className="pt-3 border-t border-neutral-800 flex items-center justify-between text-[11px] text-neutral-500">
+                  <div className="pt-3 border-t border-neutral-800 flex items-center justify-between text-[11px] text-neutral-500 font-mono">
                     <span>Resolution: {deviceViewport === "desktop" ? "1920x1080" : deviceViewport === "tablet" ? "768x1024" : "375x667"}</span>
                     <span>Session: {result?.journey_id}</span>
                   </div>
@@ -399,7 +400,7 @@ export default function BrowserAgentPage() {
 
               {activeTab === "dom" && (
                 <div className="w-full h-full text-left">
-                  <pre className="p-4 bg-neutral-900 rounded-lg border border-neutral-800 font-mono text-xs text-teal-300 overflow-auto max-h-[460px] leading-relaxed">
+                  <pre className="p-4 bg-neutral-950 rounded-lg border border-neutral-800 font-mono text-xs text-neutral-300 overflow-auto max-h-[460px] leading-relaxed">
                     {result?.dom_snapshot}
                   </pre>
                 </div>
@@ -410,10 +411,10 @@ export default function BrowserAgentPage() {
                   {result?.console_logs?.map((log, idx) => (
                     <div
                       key={idx}
-                      className="p-2.5 bg-neutral-900/80 rounded border border-neutral-800/80 font-mono text-[11px] text-neutral-300 flex items-center gap-2"
+                      className="p-2.5 bg-neutral-950 rounded border border-neutral-800/80 font-mono text-[11px] text-neutral-300 flex items-center gap-2"
                     >
                       <span className="text-neutral-500">[{idx + 1}]</span>
-                      <span className={log.includes("[SUCCESS]") ? "text-emerald-400 font-semibold" : log.includes("[INFO]") ? "text-blue-400" : "text-neutral-300"}>
+                      <span className={log.includes("[SUCCESS]") ? "text-neutral-200 font-medium" : log.includes("[INFO]") ? "text-neutral-400" : "text-neutral-300"}>
                         {log}
                       </span>
                     </div>
