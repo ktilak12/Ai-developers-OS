@@ -239,18 +239,18 @@ export default function ProjectMemoryPage() {
   }, [architecture, searchQuery]);
 
   return (
-    <div className="flex-1 overflow-y-auto bg-neutral-950 p-8 text-neutral-100">
+    <div className="flex-1 overflow-y-auto bg-black p-8 text-neutral-100">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <div className="flex items-center gap-3">
-            <span className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span className="p-2 rounded-xl bg-neutral-900 text-neutral-300 border border-neutral-800">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 12 2.1 10.1"/><path d="M12 12v9.9"/><path d="M12 12h9.9"/></svg>
             </span>
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
                 Project Memory Store
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono font-medium">Phase 13</span>
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-neutral-900 text-neutral-300 border border-neutral-800 font-mono font-medium">Phase 13</span>
               </h1>
               <p className="text-sm text-neutral-400 mt-1">
                 Persistent architecture records, decision history (ADRs), task execution logs, and developer preferences.
@@ -262,7 +262,7 @@ export default function ProjectMemoryPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowAdrModal(true)}
-            className="px-4 py-2 text-sm font-medium rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-colors flex items-center gap-2 shadow-lg shadow-emerald-600/20"
+            className="px-4 py-2 text-sm font-semibold rounded-lg bg-white hover:bg-neutral-200 text-black transition-colors flex items-center gap-2 shadow-sm"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             New ADR Decision
@@ -272,10 +272,10 @@ export default function ProjectMemoryPage() {
 
       {/* Top Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div className="p-5 rounded-xl bg-neutral-900/60 border border-neutral-800 backdrop-blur-xl">
+        <div className="p-5 rounded-xl bg-neutral-950 border border-neutral-800">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">Architecture Components</span>
-            <span className="text-blue-400 p-1.5 rounded-lg bg-blue-500/10">
+            <span className="text-neutral-400 p-1.5 rounded-lg bg-neutral-900 border border-neutral-800">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/></svg>
             </span>
           </div>
@@ -283,32 +283,32 @@ export default function ProjectMemoryPage() {
           <p className="text-xs text-neutral-500 mt-1">Modules, tech stack & conventions</p>
         </div>
 
-        <div className="p-5 rounded-xl bg-neutral-900/60 border border-neutral-800 backdrop-blur-xl">
+        <div className="p-5 rounded-xl bg-neutral-950 border border-neutral-800">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">Decision Records (ADRs)</span>
-            <span className="text-emerald-400 p-1.5 rounded-lg bg-emerald-500/10">
+            <span className="text-neutral-400 p-1.5 rounded-lg bg-neutral-900 border border-neutral-800">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             </span>
           </div>
           <p className="text-2xl font-bold text-white mt-2 font-mono">{decisions.length}</p>
-          <p className="text-xs text-emerald-400 mt-1">{decisions.filter(d => d.status === "ACCEPTED").length} Accepted decisions</p>
+          <p className="text-xs text-neutral-400 mt-1">{decisions.filter(d => d.status === "ACCEPTED").length} Accepted decisions</p>
         </div>
 
-        <div className="p-5 rounded-xl bg-neutral-900/60 border border-neutral-800 backdrop-blur-xl">
+        <div className="p-5 rounded-xl bg-neutral-950 border border-neutral-800">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">Recorded Task History</span>
-            <span className="text-purple-400 p-1.5 rounded-lg bg-purple-500/10">
+            <span className="text-neutral-400 p-1.5 rounded-lg bg-neutral-900 border border-neutral-800">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             </span>
           </div>
           <p className="text-2xl font-bold text-white mt-2 font-mono">{tasks.length}</p>
-          <p className="text-xs text-purple-400 mt-1">Past tasks, fixes & test runs</p>
+          <p className="text-xs text-neutral-400 mt-1">Past tasks, fixes & test runs</p>
         </div>
 
-        <div className="p-5 rounded-xl bg-neutral-900/60 border border-neutral-800 backdrop-blur-xl">
+        <div className="p-5 rounded-xl bg-neutral-950 border border-neutral-800">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">Preferences & Rules</span>
-            <span className="text-amber-400 p-1.5 rounded-lg bg-amber-500/10">
+            <span className="text-neutral-400 p-1.5 rounded-lg bg-neutral-900 border border-neutral-800">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
             </span>
           </div>
@@ -319,25 +319,24 @@ export default function ProjectMemoryPage() {
 
       {/* Navigation Tabs and Search Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-b border-neutral-800 pb-4 mb-6">
-        <div className="flex items-center gap-2 overflow-x-auto">
+        <div className="flex items-center gap-1.5 overflow-x-auto">
           {[
-            { id: "overview", label: "Overview", icon: "📊" },
-            { id: "architecture", label: "Architecture Memory", icon: "🏗️" },
-            { id: "decisions", label: "Decision Memory (ADRs)", icon: "📜" },
-            { id: "tasks", label: "Task History", icon: "⏱️" },
-            { id: "preferences", label: "Preferences & Rules", icon: "⚙️" },
-            { id: "context", label: "Agent LLM Context", icon: "💬" }
+            { id: "overview", label: "Overview" },
+            { id: "architecture", label: "Architecture Memory" },
+            { id: "decisions", label: "Decision Memory (ADRs)" },
+            { id: "tasks", label: "Task History" },
+            { id: "preferences", label: "Preferences & Rules" },
+            { id: "context", label: "Agent LLM Context" }
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`px-3.5 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap ${
+              className={`px-3.5 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap ${
                 activeTab === tab.id
-                  ? "bg-neutral-800 text-white font-semibold border border-neutral-700 shadow-sm"
-                  : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900/50"
+                  ? "bg-white text-black font-semibold shadow-sm"
+                  : "text-neutral-400 hover:text-white hover:bg-neutral-900"
               }`}
             >
-              <span>{tab.icon}</span>
               {tab.label}
             </button>
           ))}
@@ -352,7 +351,7 @@ export default function ProjectMemoryPage() {
             placeholder="Search memory records..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-1.5 text-sm bg-neutral-900 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500/50 transition-colors"
+            className="w-full pl-9 pr-4 py-1.5 text-xs bg-neutral-900 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-500 transition-colors font-mono"
           />
         </div>
       </div>
@@ -362,18 +361,18 @@ export default function ProjectMemoryPage() {
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Architecture Overview */}
-            <div className="p-6 rounded-2xl bg-neutral-900/40 border border-neutral-800 backdrop-blur-xl">
+            <div className="p-6 rounded-2xl bg-neutral-950 border border-neutral-800">
               <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-                <span>🏗️</span> Key Architecture Components
+                Key Architecture Components
               </h2>
               <div className="space-y-3">
                 {architecture.slice(0, 3).map((comp) => (
-                  <div key={comp.id} className="p-4 rounded-xl bg-neutral-900/80 border border-neutral-800/80">
+                  <div key={comp.id} className="p-4 rounded-xl bg-neutral-900 border border-neutral-800">
                     <div className="flex items-center justify-between mb-1">
-                      <h3 className="font-semibold text-emerald-400 text-sm">{comp.component_name}</h3>
+                      <h3 className="font-semibold text-white text-sm">{comp.component_name}</h3>
                       <div className="flex gap-1">
                         {comp.technology_stack.map((tech) => (
-                          <span key={tech} className="text-[10px] px-2 py-0.5 rounded bg-neutral-800 text-neutral-300 font-mono">
+                          <span key={tech} className="text-[10px] px-2 py-0.5 rounded bg-neutral-850 text-neutral-300 font-mono border border-neutral-800">
                             {tech}
                           </span>
                         ))}
@@ -390,16 +389,16 @@ export default function ProjectMemoryPage() {
             </div>
 
             {/* Recent ADRs */}
-            <div className="p-6 rounded-2xl bg-neutral-900/40 border border-neutral-800 backdrop-blur-xl">
+            <div className="p-6 rounded-2xl bg-neutral-950 border border-neutral-800">
               <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-                <span>📜</span> Active Architecture Decisions (ADRs)
+                Active Architecture Decisions (ADRs)
               </h2>
               <div className="space-y-3">
                 {decisions.slice(0, 3).map((adr) => (
-                  <div key={adr.id} className="p-4 rounded-xl bg-neutral-900/80 border border-neutral-800/80">
+                  <div key={adr.id} className="p-4 rounded-xl bg-neutral-900 border border-neutral-800">
                     <div className="flex items-center justify-between mb-1">
                       <h3 className="font-semibold text-white text-sm">{adr.title}</h3>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-neutral-850 text-neutral-300 border border-neutral-800 font-mono font-medium">
                         {adr.status}
                       </span>
                     </div>
@@ -420,11 +419,11 @@ export default function ProjectMemoryPage() {
       {activeTab === "architecture" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {filteredArchitecture.map((comp) => (
-            <div key={comp.id} className="p-6 rounded-2xl bg-neutral-900/40 border border-neutral-800 backdrop-blur-xl flex flex-col justify-between">
+            <div key={comp.id} className="p-6 rounded-2xl bg-neutral-950 border border-neutral-800 flex flex-col justify-between">
               <div>
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <h3 className="text-lg font-bold text-white">{comp.component_name}</h3>
-                  <span className="text-xs px-2.5 py-1 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono font-medium">
+                  <span className="text-xs px-2.5 py-1 rounded-md bg-neutral-900 text-neutral-300 border border-neutral-800 font-mono font-medium">
                     {comp.id}
                   </span>
                 </div>
@@ -435,7 +434,7 @@ export default function ProjectMemoryPage() {
                     <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider block mb-1.5">Technology Stack</span>
                     <div className="flex flex-wrap gap-1.5">
                       {comp.technology_stack.map((tech) => (
-                        <span key={tech} className="px-2.5 py-1 rounded-lg bg-neutral-800 text-xs font-mono text-emerald-400 border border-neutral-700">
+                        <span key={tech} className="px-2.5 py-1 rounded-lg bg-neutral-900 text-xs font-mono text-neutral-300 border border-neutral-800">
                           {tech}
                         </span>
                       ))}
@@ -455,7 +454,7 @@ export default function ProjectMemoryPage() {
                     <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider block mb-1.5">Conventions & Patterns</span>
                     <div className="flex flex-wrap gap-1.5">
                       {comp.conventions.map((conv) => (
-                        <span key={conv} className="px-2 py-0.5 rounded bg-neutral-800/80 text-[11px] text-neutral-300">
+                        <span key={conv} className="px-2 py-0.5 rounded bg-neutral-900 text-[11px] text-neutral-300 border border-neutral-800">
                           {conv}
                         </span>
                       ))}
@@ -472,10 +471,10 @@ export default function ProjectMemoryPage() {
       {activeTab === "decisions" && (
         <div className="space-y-4">
           {filteredDecisions.map((adr) => (
-            <div key={adr.id} className="p-6 rounded-2xl bg-neutral-900/40 border border-neutral-800 backdrop-blur-xl">
+            <div key={adr.id} className="p-6 rounded-2xl bg-neutral-950 border border-neutral-800">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
                 <div className="flex items-center gap-3">
-                  <span className="px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono text-xs font-semibold">
+                  <span className="px-2.5 py-1 rounded-md bg-neutral-900 text-neutral-300 border border-neutral-800 font-mono text-xs font-medium">
                     {adr.id}
                   </span>
                   <h3 className="text-base font-bold text-white">{adr.title}</h3>
@@ -484,20 +483,20 @@ export default function ProjectMemoryPage() {
                   <span className="text-neutral-400">By {adr.author}</span>
                   <span className="text-neutral-600">•</span>
                   <span className="text-neutral-400">{adr.date}</span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold">
+                  <span className="px-2.5 py-0.5 rounded-full bg-neutral-900 text-neutral-300 border border-neutral-800 font-mono text-xs font-medium">
                     {adr.status}
                   </span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-neutral-800/60">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-neutral-800">
                 <div>
                   <h4 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-1">Context</h4>
                   <p className="text-sm text-neutral-300">{adr.context}</p>
                 </div>
                 <div>
                   <h4 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-1">Decision</h4>
-                  <p className="text-sm text-emerald-300 font-medium">{adr.decision}</p>
+                  <p className="text-sm text-neutral-200">{adr.decision}</p>
                 </div>
               </div>
 
@@ -520,25 +519,26 @@ export default function ProjectMemoryPage() {
       {activeTab === "tasks" && (
         <div className="space-y-4">
           {tasks.map((task) => (
-            <div key={task.id} className="p-6 rounded-2xl bg-neutral-900/40 border border-neutral-800 backdrop-blur-xl">
+            <div key={task.id} className="p-6 rounded-2xl bg-neutral-950 border border-neutral-800">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-3">
-                  <span className="px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono text-xs font-bold">
+                  <span className="px-2.5 py-0.5 rounded-full bg-neutral-900 text-neutral-300 border border-neutral-800 font-mono text-xs font-medium">
                     {task.id}
                   </span>
                   <h3 className="text-base font-bold text-white">{task.task_title}</h3>
                 </div>
-                <span className="text-xs px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold font-mono">
+                <span className="text-xs px-2.5 py-1 rounded-md bg-neutral-900 text-neutral-300 border border-neutral-800 font-medium font-mono flex items-center gap-1.5">
+                  <span className={`h-1.5 w-1.5 rounded-full ${task.status === "COMPLETED" ? "bg-emerald-500" : "bg-neutral-400"}`}></span>
                   {task.status}
                 </span>
               </div>
               <p className="text-sm text-neutral-300 mb-3">{task.task_request}</p>
 
-              <div className="p-3 rounded-xl bg-neutral-950/60 border border-neutral-800/80 mb-3">
+              <div className="p-3 rounded-xl bg-neutral-900 border border-neutral-800 mb-3">
                 <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider block mb-1">Files Changed</span>
                 <div className="flex flex-wrap gap-1.5 font-mono text-xs text-neutral-300">
                   {task.files_changed.map((f) => (
-                    <span key={f} className="px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800">
+                    <span key={f} className="px-2 py-0.5 rounded bg-neutral-950 border border-neutral-800">
                       {f}
                     </span>
                   ))}
@@ -546,8 +546,8 @@ export default function ProjectMemoryPage() {
               </div>
 
               {task.fix_summary && (
-                <div className="text-xs text-emerald-400 font-mono flex items-center gap-2">
-                  <span>Resolution:</span>
+                <div className="text-xs text-neutral-400 font-mono flex items-center gap-2">
+                  <span className="text-neutral-500">Resolution:</span>
                   <span className="text-neutral-300">{task.fix_summary}</span>
                 </div>
               )}
@@ -560,15 +560,15 @@ export default function ProjectMemoryPage() {
       {activeTab === "preferences" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {preferences.map((pref) => (
-            <div key={pref.id} className="p-5 rounded-2xl bg-neutral-900/40 border border-neutral-800 backdrop-blur-xl">
+            <div key={pref.id} className="p-5 rounded-2xl bg-neutral-950 border border-neutral-800">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-bold text-white text-base">{pref.key}</h3>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-mono font-semibold">
+                <span className="text-[10px] px-2 py-0.5 rounded bg-neutral-900 text-neutral-300 border border-neutral-800 font-mono font-medium">
                   {pref.category}
                 </span>
               </div>
               <p className="text-xs text-neutral-400 mb-3">{pref.description}</p>
-              <div className="p-3 rounded-xl bg-neutral-950/80 border border-neutral-800 font-mono text-xs text-emerald-300">
+              <div className="p-3 rounded-xl bg-neutral-900 border border-neutral-800 font-mono text-xs text-neutral-200">
                 {pref.value}
               </div>
             </div>
@@ -578,7 +578,7 @@ export default function ProjectMemoryPage() {
 
       {/* TAB 6: AGENT LLM CONTEXT */}
       {activeTab === "context" && (
-        <div className="p-6 rounded-2xl bg-neutral-900/40 border border-neutral-800 backdrop-blur-xl">
+        <div className="p-6 rounded-2xl bg-neutral-950 border border-neutral-800">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-lg font-bold text-white">Synthesized Agent LLM Context</h2>
@@ -588,7 +588,7 @@ export default function ProjectMemoryPage() {
             </div>
           </div>
 
-          <pre className="p-5 rounded-xl bg-neutral-950 border border-neutral-800 text-xs font-mono text-emerald-300 overflow-x-auto whitespace-pre-wrap leading-relaxed">
+          <pre className="p-5 rounded-xl bg-black border border-neutral-800 text-xs font-mono text-neutral-300 overflow-x-auto whitespace-pre-wrap leading-relaxed">
             {promptContext || "Loading synthesized prompt context..."}
           </pre>
         </div>
@@ -596,8 +596,8 @@ export default function ProjectMemoryPage() {
 
       {/* Create New ADR Modal */}
       {showAdrModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-neutral-900 border border-neutral-800 p-6 shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-neutral-950 border border-neutral-800 p-6 shadow-2xl space-y-4">
             <h3 className="text-lg font-bold text-white">Record Architectural Decision (ADR)</h3>
             <div>
               <label className="text-xs font-semibold text-neutral-400 uppercase tracking-wider block mb-1">Title</label>
@@ -606,7 +606,7 @@ export default function ProjectMemoryPage() {
                 placeholder="e.g. ADR-003: Use Redis for Memory Cache"
                 value={newAdrTitle}
                 onChange={(e) => setNewAdrTitle(e.target.value)}
-                className="w-full px-3 py-2 text-sm bg-neutral-950 border border-neutral-800 rounded-lg text-white focus:outline-none focus:border-emerald-500"
+                className="w-full px-3 py-2 text-sm bg-neutral-900 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-500"
               />
             </div>
             <div>
@@ -616,7 +616,7 @@ export default function ProjectMemoryPage() {
                 placeholder="Describe the problem context and constraints..."
                 value={newAdrContext}
                 onChange={(e) => setNewAdrContext(e.target.value)}
-                className="w-full px-3 py-2 text-sm bg-neutral-950 border border-neutral-800 rounded-lg text-white focus:outline-none focus:border-emerald-500"
+                className="w-full px-3 py-2 text-sm bg-neutral-900 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-500"
               />
             </div>
             <div>
@@ -626,19 +626,19 @@ export default function ProjectMemoryPage() {
                 placeholder="State the decision and key architectural reasons..."
                 value={newAdrDecision}
                 onChange={(e) => setNewAdrDecision(e.target.value)}
-                className="w-full px-3 py-2 text-sm bg-neutral-950 border border-neutral-800 rounded-lg text-white focus:outline-none focus:border-emerald-500"
+                className="w-full px-3 py-2 text-sm bg-neutral-900 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-500"
               />
             </div>
             <div className="flex items-center justify-end gap-3 pt-2 border-t border-neutral-800">
               <button
                 onClick={() => setShowAdrModal(false)}
-                className="px-4 py-2 text-sm font-medium rounded-lg text-neutral-400 hover:bg-neutral-800"
+                className="px-4 py-2 text-sm font-medium rounded-lg text-neutral-400 hover:bg-neutral-900 hover:text-white"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCreateAdr}
-                className="px-4 py-2 text-sm font-medium rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white"
+                className="px-4 py-2 text-sm font-semibold rounded-lg bg-white hover:bg-neutral-200 text-black shadow-sm"
               >
                 Save Decision
               </button>
