@@ -52,6 +52,35 @@ export default function NewProjectPage() {
       }
 
       const repoData = await res.json();
+      
+      // Persist to connected_projects list for Dashboard and Project views
+      if (typeof window !== "undefined") {
+        try {
+          const raw = localStorage.getItem("connected_projects");
+          const existing = raw ? JSON.parse(raw) : [];
+          const projectId = parsed.repo.toLowerCase();
+          const newProject = {
+            id: projectId,
+            name: repoData.name || parsed.repo,
+            fullName: repoData.full_name || `${parsed.owner}/${parsed.repo}`,
+            tech: repoData.language ? `${repoData.language} (GitHub)` : "TypeScript + Python",
+            issues: repoData.open_issues_count || 0,
+            prs: 0,
+            stars: repoData.stargazers_count || 0,
+            status: "Active",
+            updatedAt: "Just now",
+            owner: parsed.owner,
+            repo: parsed.repo,
+            default_branch: repoData.default_branch || "main",
+            description: repoData.description || "Connected GitHub workspace"
+          };
+          const filtered = existing.filter((p: any) => p.id !== projectId);
+          localStorage.setItem("connected_projects", JSON.stringify([newProject, ...filtered]));
+        } catch (e) {
+          console.warn("Could not save to localStorage", e);
+        }
+      }
+
       setSuccess(`Connected to ${repoData.full_name || `${parsed.owner}/${parsed.repo}`}! Redirecting to Repository Explorer...`);
       
       setTimeout(() => {
