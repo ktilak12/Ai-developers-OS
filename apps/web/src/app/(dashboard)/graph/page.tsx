@@ -146,13 +146,13 @@ export default function CodeGraphPage() {
 
   const getNodeColor = (type: string) => {
     switch (type) {
-      case "FILE": return "fill-neutral-700 stroke-neutral-500 text-neutral-300";
-      case "CLASS": return "fill-purple-950 stroke-purple-500 text-purple-300";
-      case "FUNCTION": return "fill-blue-950 stroke-blue-500 text-blue-300";
-      case "METHOD": return "fill-cyan-950 stroke-cyan-500 text-cyan-300";
-      case "ROUTE": return "fill-amber-950 stroke-amber-500 text-amber-300";
-      case "INTERFACE": return "fill-emerald-950 stroke-emerald-500 text-emerald-300";
-      default: return "fill-neutral-900 stroke-neutral-600 text-neutral-400";
+      case "FILE": return "fill-neutral-800 stroke-neutral-600 text-neutral-300";
+      case "CLASS": return "fill-neutral-900 stroke-neutral-400 text-white";
+      case "FUNCTION": return "fill-neutral-900 stroke-neutral-500 text-neutral-300";
+      case "METHOD": return "fill-neutral-950 stroke-neutral-600 text-neutral-400";
+      case "ROUTE": return "fill-neutral-850 stroke-neutral-400 text-white";
+      case "INTERFACE": return "fill-neutral-900 stroke-neutral-500 text-neutral-300";
+      default: return "fill-neutral-950 stroke-neutral-700 text-neutral-400";
     }
   };
 
@@ -167,7 +167,7 @@ export default function CodeGraphPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-800 pb-5">
         <div>
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-violet-500/10 text-violet-400 border border-violet-500/20">
+            <div className="p-2 rounded-lg bg-neutral-900 text-neutral-300 border border-neutral-800">
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="6" y1="9" x2="6" y2="15"/><line x1="9" y1="18" x2="15" y2="18"/><line x1="18" y1="9" x2="18" y2="15"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg>
             </div>
             <div>
@@ -181,10 +181,10 @@ export default function CodeGraphPage() {
           <button
             onClick={handleRebuildGraph}
             disabled={isRebuilding}
-            className="flex items-center gap-2 px-3.5 py-2 bg-neutral-900 border border-neutral-700 text-neutral-200 text-xs font-semibold rounded-lg hover:text-white hover:bg-neutral-800 disabled:opacity-50 transition-all shadow-sm"
+            className="flex items-center gap-2 px-3.5 py-2 bg-neutral-900 border border-neutral-800 text-neutral-200 text-xs font-semibold rounded-lg hover:text-white hover:bg-neutral-850 disabled:opacity-50 transition-all shadow-sm"
           >
             {isRebuilding ? (
-              <svg className="animate-spin h-3.5 w-3.5 text-violet-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+              <svg className="animate-spin h-3.5 w-3.5 text-neutral-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             ) : (
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
             )}
@@ -194,11 +194,11 @@ export default function CodeGraphPage() {
           <button
             onClick={() => handleRunBlastRadius(selectedNode?.name || "CodeParser")}
             disabled={isAnalyzingBlast}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs font-semibold rounded-lg hover:from-violet-700 hover:to-indigo-700 disabled:opacity-50 transition-all shadow-lg shadow-violet-500/20"
+            className="flex items-center gap-2 px-4 py-2 bg-white text-black text-xs font-semibold rounded-lg hover:bg-neutral-200 disabled:opacity-50 transition-colors shadow-sm"
           >
             {isAnalyzingBlast ? (
               <>
-                <svg className="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                <svg className="animate-spin h-3.5 w-3.5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                 <span>Analyzing Blast Radius...</span>
               </>
             ) : (
@@ -212,27 +212,27 @@ export default function CodeGraphPage() {
       </div>
 
       {buildStatus && (
-        <div className="p-3 rounded-xl bg-violet-950/30 border border-violet-800/40 text-violet-300 text-xs flex items-center justify-between">
+        <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-300 text-xs font-mono flex items-center justify-between">
           <span>{buildStatus}</span>
-          <button onClick={() => setBuildStatus(null)} className="text-violet-400 hover:text-white">✕</button>
+          <button onClick={() => setBuildStatus(null)} className="text-neutral-400 hover:text-white">✕</button>
         </div>
       )}
 
       {/* Control Bar: Filters and Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-neutral-900/60 border border-neutral-800 rounded-xl p-3 flex items-center justify-between">
+        <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-3 flex items-center justify-between">
           <span className="text-xs text-neutral-400">Total Nodes</span>
-          <span className="text-sm font-bold text-violet-400 font-mono">{nodes.length}</span>
+          <span className="text-sm font-bold text-white font-mono">{nodes.length}</span>
         </div>
-        <div className="bg-neutral-900/60 border border-neutral-800 rounded-xl p-3 flex items-center justify-between">
+        <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-3 flex items-center justify-between">
           <span className="text-xs text-neutral-400">Total Edges</span>
-          <span className="text-sm font-bold text-indigo-400 font-mono">{edges.length}</span>
+          <span className="text-sm font-bold text-white font-mono">{edges.length}</span>
         </div>
-        <div className="bg-neutral-900/60 border border-neutral-800 rounded-xl p-3 flex items-center justify-between">
+        <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-3 flex items-center justify-between">
           <span className="text-xs text-neutral-400">Graph Density</span>
-          <span className="text-sm font-bold text-emerald-400 font-mono">0.076</span>
+          <span className="text-sm font-bold text-neutral-300 font-mono">0.076</span>
         </div>
-        <div className="bg-neutral-900/60 border border-neutral-800 rounded-xl p-3 flex items-center justify-between">
+        <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-3 flex items-center justify-between">
           <span className="text-xs text-neutral-400">Selected Node</span>
           <span className="text-xs font-bold text-white font-mono truncate max-w-[140px]">
             {selectedNode?.name || "None"}
@@ -241,7 +241,7 @@ export default function CodeGraphPage() {
       </div>
 
       {/* Search & Type Filter Bar */}
-      <div className="flex flex-wrap items-center gap-3 bg-neutral-900/40 p-3 rounded-xl border border-neutral-800">
+      <div className="flex flex-wrap items-center gap-3 bg-neutral-950 p-3 rounded-xl border border-neutral-800">
         <div className="relative flex-1 min-w-[240px]">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
           <input
@@ -249,7 +249,7 @@ export default function CodeGraphPage() {
             placeholder="Search symbols, functions, classes, or files..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-neutral-950 border border-neutral-800 rounded-lg pl-9 pr-3 py-1.5 text-xs text-neutral-200 focus:outline-none focus:border-violet-500 font-mono"
+            className="w-full bg-neutral-900 border border-neutral-800 rounded-lg pl-9 pr-3 py-1.5 text-xs text-neutral-200 focus:outline-none focus:border-neutral-500 font-mono"
           />
         </div>
 
@@ -260,8 +260,8 @@ export default function CodeGraphPage() {
               onClick={() => setSelectedType(type)}
               className={`px-3 py-1 rounded-md font-medium transition-colors ${
                 selectedType === type
-                  ? "bg-violet-600 text-white"
-                  : "bg-neutral-950 border border-neutral-800 text-neutral-400 hover:text-white"
+                  ? "bg-white text-black font-semibold shadow-sm"
+                  : "bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white"
               }`}
             >
               {type}
@@ -273,16 +273,16 @@ export default function CodeGraphPage() {
       {/* Main Graph Grid: Interactive Canvas + Side Inspection Panels */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Graph SVG Interactive Canvas */}
-        <div className="lg:col-span-8 bg-neutral-900/60 border border-neutral-800 rounded-xl p-4 flex flex-col h-[620px] overflow-hidden relative">
+        <div className="lg:col-span-8 bg-neutral-950 border border-neutral-800 rounded-xl p-4 flex flex-col h-[620px] overflow-hidden relative">
           <div className="flex items-center justify-between pb-3 border-b border-neutral-800/80">
             <div className="flex items-center gap-2 text-xs text-neutral-400">
-              <span className="h-2 w-2 rounded-full bg-violet-400"></span>
+              <span className="h-1.5 w-1.5 rounded-full bg-white"></span>
               <span>Force-Directed AST Dependency Topology</span>
             </div>
             <span className="text-[11px] text-neutral-500 font-mono">Click node to inspect & calculate impact</span>
           </div>
 
-          <div className="flex-1 w-full h-full overflow-auto bg-neutral-950/80 rounded-lg border border-neutral-800/40 relative mt-3">
+          <div className="flex-1 w-full h-full overflow-auto bg-black rounded-lg border border-neutral-800/40 relative mt-3">
             <svg className="w-full h-full min-w-[1050px] min-h-[540px]">
               {/* Render Edges */}
               {edges.map((edge, idx) => {
@@ -299,8 +299,8 @@ export default function CodeGraphPage() {
                       y1={sourceNode.y}
                       x2={targetNode.x}
                       y2={targetNode.y}
-                      stroke={isHighlighted ? "#f43f5e" : "#3f3f46"}
-                      strokeWidth={isHighlighted ? 2.5 : 1.2}
+                      stroke={isHighlighted ? "#ffffff" : "#27272a"}
+                      strokeWidth={isHighlighted ? 2 : 1}
                       strokeDasharray={edge.edge_type === "CALLS" ? "4 2" : undefined}
                     />
                   </g>
@@ -322,14 +322,14 @@ export default function CodeGraphPage() {
                     <circle
                       r={isSelected ? 24 : inBlast ? 22 : 18}
                       className={`${getNodeColor(node.node_type)} ${
-                        inBlast ? "stroke-rose-500 stroke-2 animate-pulse fill-rose-950/60" : ""
+                        inBlast ? "stroke-neutral-300 stroke-2 fill-neutral-800" : ""
                       } ${isSelected ? "stroke-white stroke-2" : ""}`}
                     />
                     <text
                       y={34}
                       textAnchor="middle"
                       className={`text-[10px] font-mono select-none ${
-                        isSelected ? "fill-white font-bold text-[11px]" : inBlast ? "fill-rose-300 font-bold" : "fill-neutral-400"
+                        isSelected ? "fill-white font-bold text-[11px]" : inBlast ? "fill-white font-semibold" : "fill-neutral-400"
                       }`}
                     >
                       {node.name}
@@ -352,17 +352,13 @@ export default function CodeGraphPage() {
         <div className="lg:col-span-4 space-y-6">
           {/* Blast Radius Box */}
           {blastResult && (
-            <div className="bg-neutral-900/60 border border-neutral-800 rounded-xl p-5 space-y-4">
+            <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-rose-500 animate-ping"></span>
+                  <span className="h-1.5 w-1.5 rounded-full bg-white"></span>
                   Blast Radius Impact
                 </h3>
-                <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${
-                  blastResult.risk_level === "CRITICAL" ? "bg-rose-500/20 text-rose-400 border border-rose-500/30" :
-                  blastResult.risk_level === "HIGH" ? "bg-amber-500/20 text-amber-400 border border-amber-500/30" :
-                  "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                }`}>
+                <span className="text-[10px] px-2 py-0.5 rounded font-mono font-medium uppercase tracking-wider bg-neutral-900 text-neutral-300 border border-neutral-800">
                   {blastResult.risk_level} Risk
                 </span>
               </div>
@@ -374,11 +370,11 @@ export default function CodeGraphPage() {
                 </div>
                 <div className="flex justify-between py-1 border-b border-neutral-800">
                   <span className="text-neutral-400">Impact Score:</span>
-                  <span className="text-rose-400 font-mono font-bold">{blastResult.impact_score}%</span>
+                  <span className="text-white font-mono font-bold">{blastResult.impact_score}%</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-neutral-800">
                   <span className="text-neutral-400">Affected Files:</span>
-                  <span className="text-amber-400 font-mono">{blastResult.affected_files.length}</span>
+                  <span className="text-white font-mono">{blastResult.affected_files.length}</span>
                 </div>
               </div>
 
@@ -386,7 +382,7 @@ export default function CodeGraphPage() {
                 <p className="text-[11px] font-semibold text-neutral-300 uppercase tracking-wider mb-2">Direct Dependents:</p>
                 <div className="space-y-1.5 max-h-28 overflow-y-auto">
                   {blastResult.direct_dependents.map((dep, idx) => (
-                    <div key={idx} className="p-1.5 bg-neutral-950 rounded border border-neutral-800/80 text-[11px] font-mono text-neutral-300 truncate">
+                    <div key={idx} className="p-1.5 bg-neutral-900 rounded border border-neutral-800 text-[11px] font-mono text-neutral-300 truncate">
                       {dep.split("::").pop()}
                     </div>
                   ))}
@@ -396,9 +392,9 @@ export default function CodeGraphPage() {
           )}
 
           {/* Node Inspector */}
-          <div className="bg-neutral-900/60 border border-neutral-800 rounded-xl p-5 space-y-4">
+          <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-5 space-y-4">
             <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-violet-400"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-400"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
               Symbol Inspector
             </h3>
 
@@ -411,7 +407,7 @@ export default function CodeGraphPage() {
 
                 <div>
                   <label className="text-[10px] text-neutral-500 uppercase font-semibold">Node Type</label>
-                  <p className="font-mono text-violet-400 mt-0.5">{selectedNode.node_type}</p>
+                  <p className="font-mono text-neutral-300 mt-0.5">{selectedNode.node_type}</p>
                 </div>
 
                 <div>
@@ -420,17 +416,17 @@ export default function CodeGraphPage() {
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 pt-2">
-                  <div className="p-2 bg-neutral-950 rounded border border-neutral-800 text-center">
+                  <div className="p-2 bg-neutral-900 rounded border border-neutral-800 text-center">
                     <span className="text-[9px] text-neutral-500 block">Complexity</span>
-                    <span className="text-xs font-bold text-emerald-400 font-mono">{selectedNode.complexity}</span>
+                    <span className="text-xs font-bold text-white font-mono">{selectedNode.complexity}</span>
                   </div>
-                  <div className="p-2 bg-neutral-950 rounded border border-neutral-800 text-center">
+                  <div className="p-2 bg-neutral-900 rounded border border-neutral-800 text-center">
                     <span className="text-[9px] text-neutral-500 block">In-Degree</span>
-                    <span className="text-xs font-bold text-blue-400 font-mono">{selectedNode.incoming_degree}</span>
+                    <span className="text-xs font-bold text-white font-mono">{selectedNode.incoming_degree}</span>
                   </div>
-                  <div className="p-2 bg-neutral-950 rounded border border-neutral-800 text-center">
+                  <div className="p-2 bg-neutral-900 rounded border border-neutral-800 text-center">
                     <span className="text-[9px] text-neutral-500 block">Out-Degree</span>
-                    <span className="text-xs font-bold text-purple-400 font-mono">{selectedNode.outgoing_degree}</span>
+                    <span className="text-xs font-bold text-white font-mono">{selectedNode.outgoing_degree}</span>
                   </div>
                 </div>
               </div>
