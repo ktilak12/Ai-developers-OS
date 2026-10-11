@@ -31,7 +31,8 @@ class CommandSecurityPolicy:
         "git diff",
         "node --version",
         "python --version",
-        "npm --version"
+        "npm --version",
+        "echo"
     ]
 
     # Shell injection and chaining operators that must NEVER be allowed

@@ -40,6 +40,8 @@ class EventBus:
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
         self.history.append(event)
+        if len(self.history) > 2000:
+            self.history = self.history[-1500:]
         key = event_type.value
         for cb in self._subscribers.get(key, []):
             try:

@@ -27,6 +27,11 @@ class PermissionPolicy:
         "modify_infrastructure": ActionPermission.FORBIDDEN
     }
 
+    FORBIDDEN_KEYWORDS = [
+        "delete repository", "delete repo", "rm -rf", "drop table", "drop database",
+        "expose secret", "leak token", "exfiltrate", "modify infrastructure", "destroy cluster"
+    ]
+
     @classmethod
     def check_permission(cls, action_name: str) -> ActionPermission:
         return cls.POLICY_MAP.get(action_name, ActionPermission.APPROVAL_REQUIRED)
@@ -38,3 +43,11 @@ class PermissionPolicy:
     @classmethod
     def is_allowed_autonomously(cls, action_name: str) -> bool:
         return cls.check_permission(action_name) == ActionPermission.AUTO_ALLOWED
+
+    @classmethod
+    def is_task_forbidden(cls, task_request: str) -> bool:
+        if not task_request or not isinstance(task_request, str):
+            return False
+        task_lower = task_request.lower()
+        return any(kw in task_lower for kw in cls.FORBIDDEN_KEYWORDS)
+

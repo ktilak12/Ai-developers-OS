@@ -5,6 +5,7 @@ from orchestrator.state import OrchestratorState, WorkflowStatus, ApprovalState,
 from orchestrator.events import EventBus, WorkflowEventType
 from orchestrator.router import AgentRouter
 from orchestrator.permissions import PermissionPolicy
+from sandbox.policies.command_policy import CommandSecurityPolicy
 
 from agents.planner.agent import PlannerAgent
 from agents.researcher.agent import ResearcherAgent
@@ -25,16 +26,16 @@ class MultiAgentOrchestrator:
     """
 
     def __init__(self, root_dir: str):
-        self.root_dir = root_dir
+        self.root_dir = os.path.realpath(os.path.abspath(root_dir))
         self.event_bus = EventBus()
-        self.planner = PlannerAgent(root_dir)
-        self.researcher = ResearcherAgent(root_dir)
-        self.coder = CoderAgent(root_dir)
-        self.tester = TestingAgent(root_dir)
-        self.security = SecurityAgent(root_dir)
-        self.reviewer = ReviewAgent(root_dir)
-        self.memory = ProjectMemoryManager(root_dir)
-        self.observability = ObservabilityManager(root_dir)
+        self.planner = PlannerAgent(self.root_dir)
+        self.researcher = ResearcherAgent(self.root_dir)
+        self.coder = CoderAgent(self.root_dir)
+        self.tester = TestingAgent(self.root_dir)
+        self.security = SecurityAgent(self.root_dir)
+        self.reviewer = ReviewAgent(self.root_dir)
+        self.memory = ProjectMemoryManager(self.root_dir)
+        self.observability = ObservabilityManager(self.root_dir)
         self.workflows: Dict[str, OrchestratorState] = {}
 
     def get_workflow(self, workflow_id: str) -> Optional[OrchestratorState]:
@@ -44,6 +45,29 @@ class MultiAgentOrchestrator:
         return sorted(list(self.workflows.values()), key=lambda w: w.created_at, reverse=True)
 
     def execute_workflow(self, task_request: str, auto_approve: bool = False, test_command: Optional[str] = None) -> OrchestratorState:
+        if not task_request or not isinstance(task_request, str) or not task_request.strip():
+            raise ValueError("task_request cannot be empty.")
+        if len(task_request) > 5000:
+            raise ValueError("task_request exceeds maximum allowed length of 5000 characters.")
+        if "\0" in task_request:
+            raise ValueError("Null bytes are prohibited in task_request.")
+        if PermissionPolicy.is_task_forbidden(task_request):
+            raise ValueError("Task violates security permission policy: Forbidden operation requested.")
+
+        if test_command:
+            if "\0" in test_command:
+                raise ValueError("Null bytes are prohibited in test_command.")
+            cmd_policy = CommandSecurityPolicy(additional_allowed=["echo"])
+            allowed, reason = cmd_policy.is_command_allowed(test_command)
+            if not allowed:
+                raise ValueError(f"Security violation in test_command: {reason}")
+
+        # Enforce memory bounding
+        if len(self.workflows) > 500:
+            oldest_keys = sorted(self.workflows.keys(), key=lambda k: self.workflows[k].created_at)[:100]
+            for k in oldest_keys:
+                del self.workflows[k]
+
         state = OrchestratorState(task=task_request)
         self.workflows[state.workflow_id] = state
         self.event_bus.publish(WorkflowEventType.WORKFLOW_STARTED, {"workflow_id": state.workflow_id, "task": task_request})
@@ -275,13 +299,39 @@ class MultiAgentOrchestrator:
             self.observability.record_workflow_trace(trace)
 
         # --- STEP 7: HUMAN APPROVAL GATE ---
-        if PermissionPolicy.requires_approval("create_pr") and not auto_approve:
+        has_critical_security = any(
+            f.get("severity") in ("CRITICAL", "HIGH") or "vulnerability" in str(f.get("type", "")).lower()
+            for f in state.security_findings
+        )
+        has_test_failure = not state.test_success
+        has_changes_requested = state.review and state.review.get("status") != "APPROVED"
+
+        requires_approval = (
+            not auto_approve
+            or has_critical_security
+            or has_test_failure
+            or has_changes_requested
+        )
+
+        if requires_approval:
             state.status = WorkflowStatus.WAITING_APPROVAL
             state.approval_status = ApprovalState.PENDING
             state.current_agent = "human_gate"
+            override_reasons = []
+            if has_critical_security:
+                override_reasons.append("Critical/High security vulnerabilities detected")
+            if has_test_failure:
+                override_reasons.append("Test suite failed")
+            if has_changes_requested:
+                override_reasons.append("Reviewer requested changes")
+
+            msg = "Human approval required to open GitHub Pull Request."
+            if override_reasons:
+                msg += f" (Auto-approval blocked: {'; '.join(override_reasons)})"
+
             self.event_bus.publish(WorkflowEventType.APPROVAL_REQUESTED, {
                 "workflow_id": state.workflow_id,
-                "message": "Human approval required to open GitHub Pull Request."
+                "message": msg
             })
         else:
             self._finalize_and_create_pr(state)
@@ -289,9 +339,20 @@ class MultiAgentOrchestrator:
         return state
 
     def handle_human_decision(self, workflow_id: str, approve: bool, notes: Optional[str] = None) -> OrchestratorState:
+        if not workflow_id or not isinstance(workflow_id, str) or "\0" in workflow_id:
+            raise ValueError("Invalid workflow ID specified.")
         state = self.workflows.get(workflow_id)
         if not state:
             raise ValueError(f"Workflow {workflow_id} not found.")
+
+        if state.status != WorkflowStatus.WAITING_APPROVAL:
+            raise ValueError(f"Workflow {workflow_id} is not waiting for approval (current status: {state.status.value}).")
+
+        if notes:
+            if len(notes) > 1000:
+                raise ValueError("Notes exceeds maximum length of 1000 characters.")
+            if "\0" in notes:
+                raise ValueError("Null bytes are prohibited in notes.")
 
         state.approval_notes = notes
         if approve:
