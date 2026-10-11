@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import httpx
 import os
+import re
 import time
 from typing import Optional, List, Dict, Any
 
@@ -26,6 +27,8 @@ from memory.models import (
     DeveloperPreferenceRecord, DecisionStatus, TaskStatus, PreferenceCategory
 )
 from orchestrator import MultiAgentOrchestrator, OrchestratorState, WorkflowStatus, ApprovalState
+from orchestrator.permissions import PermissionPolicy
+from sandbox.policies.command_policy import CommandSecurityPolicy
 from observability.manager import ObservabilityManager
 from evaluation.evaluator import SWEEvaluator
 from evaluation.dataset import get_all_benchmark_tasks, get_benchmark_task_by_id
@@ -1015,19 +1018,28 @@ async def run_multi_agent_workflow(req: OrchestratorRunRequest):
         raise HTTPException(status_code=400, detail="Task request exceeds maximum length of 2000 characters.")
     if "\0" in req.task_request:
         raise HTTPException(status_code=400, detail="Null bytes are prohibited in task request.")
+    if PermissionPolicy.is_task_forbidden(req.task_request):
+        raise HTTPException(status_code=403, detail="Task violates security permission policy: Forbidden operation requested.")
     if req.test_command:
         if len(req.test_command) > 500:
             raise HTTPException(status_code=400, detail="Test command exceeds maximum length of 500 characters.")
         if "\0" in req.test_command:
             raise HTTPException(status_code=400, detail="Null bytes are prohibited in test command.")
+        cmd_policy = CommandSecurityPolicy(additional_allowed=["echo"])
+        allowed, reason = cmd_policy.is_command_allowed(req.test_command)
+        if not allowed:
+            raise HTTPException(status_code=400, detail=f"Security violation in test_command: {reason}")
 
     orch = get_orchestrator(req.directory_path)
-    state = orch.execute_workflow(
-        task_request=req.task_request,
-        auto_approve=req.auto_approve or False,
-        test_command=req.test_command
-    )
-    return state.model_dump()
+    try:
+        state = orch.execute_workflow(
+            task_request=req.task_request,
+            auto_approve=req.auto_approve or False,
+            test_command=req.test_command
+        )
+        return state.model_dump()
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.get("/api/orchestrator/state/{workflow_id}")
@@ -1035,6 +1047,8 @@ async def get_orchestrator_state(workflow_id: str, directory_path: Optional[str]
     """Returns the current state and telemetry of a running or completed workflow."""
     if not workflow_id or not workflow_id.strip() or len(workflow_id) > 100 or "\0" in workflow_id:
         raise HTTPException(status_code=400, detail="Invalid workflow ID.")
+    if not re.match(r"^[a-zA-Z0-9_\-]+$", workflow_id):
+        raise HTTPException(status_code=400, detail="Invalid workflow ID format.")
     orch = get_orchestrator(directory_path)
     state = orch.get_workflow(workflow_id)
     if not state:
@@ -1051,6 +1065,8 @@ async def handle_orchestrator_approval(req: OrchestratorApproveRequest):
         raise HTTPException(status_code=400, detail="Workflow ID exceeds maximum length of 100 characters.")
     if "\0" in req.workflow_id:
         raise HTTPException(status_code=400, detail="Null bytes are prohibited in workflow ID.")
+    if not re.match(r"^[a-zA-Z0-9_\-]+$", req.workflow_id):
+        raise HTTPException(status_code=400, detail="Invalid workflow ID format.")
     if req.notes:
         if len(req.notes) > 1000:
             raise HTTPException(status_code=400, detail="Notes exceeds maximum length of 1000 characters.")
@@ -1066,7 +1082,10 @@ async def handle_orchestrator_approval(req: OrchestratorApproveRequest):
         )
         return updated.model_dump()
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        err_msg = str(e)
+        if "not found" in err_msg.lower():
+            raise HTTPException(status_code=404, detail=err_msg)
+        raise HTTPException(status_code=400, detail=err_msg)
 
 
 @app.get("/api/orchestrator/history")
@@ -1118,8 +1137,8 @@ async def list_observability_traces(directory_path: Optional[str] = None):
 @app.get("/api/observability/traces/{trace_id}")
 async def get_observability_trace_detail(trace_id: str, directory_path: Optional[str] = None):
     """Returns granular spans and tool calls for a specific agent trace."""
-    if not trace_id or not trace_id.strip() or len(trace_id) > 100 or "\0" in trace_id:
-        raise HTTPException(status_code=400, detail="Invalid trace ID.")
+    if not trace_id or not trace_id.strip() or len(trace_id) > 100 or "\0" in trace_id or not re.match(r"^[a-zA-Z0-9_\-]+$", trace_id):
+        raise HTTPException(status_code=400, detail="Invalid trace ID format.")
     mgr = get_observability_manager(directory_path)
     trace = mgr.get_trace(trace_id)
     if not trace:
@@ -1160,8 +1179,8 @@ async def get_benchmark_tasks():
 @app.get("/api/evaluation/benchmark/tasks/{task_id}")
 async def get_benchmark_task_detail(task_id: str):
     """Returns details for a specific benchmark task."""
-    if not task_id or not task_id.strip() or len(task_id) > 64 or "\0" in task_id:
-        raise HTTPException(status_code=400, detail="Invalid task ID.")
+    if not task_id or not task_id.strip() or len(task_id) > 64 or "\0" in task_id or not re.match(r"^[a-zA-Z0-9_\-]+$", task_id):
+        raise HTTPException(status_code=400, detail="Invalid task ID format.")
     task = get_benchmark_task_by_id(task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Benchmark task not found.")
@@ -1187,12 +1206,15 @@ async def run_benchmark_evaluation(req: BenchmarkRunRequest):
         if len(req.task_ids) > 50:
             raise HTTPException(status_code=400, detail="Task IDs list exceeds maximum limit of 50 items.")
         for tid in req.task_ids:
-            if not isinstance(tid, str) or "\0" in tid or len(tid) > 64:
+            if not isinstance(tid, str) or "\0" in tid or len(tid) > 64 or not re.match(r"^[a-zA-Z0-9_\-]+$", tid):
                 raise HTTPException(status_code=400, detail="Invalid task ID format.")
 
     evaluator = get_evaluator(req.directory_path)
-    scorecard = evaluator.run_benchmark(task_ids=req.task_ids)
-    return scorecard.model_dump()
+    try:
+        scorecard = evaluator.run_benchmark(task_ids=req.task_ids)
+        return scorecard.model_dump()
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.get("/api/evaluation/benchmark/report")
