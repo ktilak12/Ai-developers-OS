@@ -15,6 +15,7 @@ class KnowledgeGraphStore:
         self.nodes: Dict[str, GraphNode] = {}
         self.adj: Dict[str, List[GraphEdge]] = defaultdict(list)          # source -> outgoing edges
         self.rev_adj: Dict[str, List[GraphEdge]] = defaultdict(list)      # target -> incoming edges
+        self.root_dir: Optional[str] = None
         
         if data:
             self.load_data(data)

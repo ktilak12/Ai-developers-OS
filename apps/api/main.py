@@ -1,8 +1,17 @@
+import sys
+import os
+from pathlib import Path
+
+# Add project root to sys.path so that absolute imports (intelligence, agents, sandbox, etc.)
+# resolve correctly regardless of execution context or working directory.
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import httpx
-import os
 import re
 import time
 from typing import Optional, List, Dict, Any
@@ -130,7 +139,6 @@ class BrowserVerifyRequest(BaseModel):
 
 
 
-import re
 
 GITHUB_IDENTIFIER_REGEX = re.compile(r"^[a-zA-Z0-9_.-]+$")
 
@@ -223,9 +231,11 @@ async def get_repository_contents(owner: str = Query(...), repo: str = Query(...
     endpoint = f"repos/{owner}/{repo}/contents/{path}" if path else f"repos/{owner}/{repo}/contents"
     return await make_github_request(endpoint, token)
 
+DEFAULT_PROJECT_ROOT = PROJECT_ROOT
+
 def validate_safe_directory(path: Optional[str]) -> str:
     """Security validator for workspace and repository directory paths."""
-    target_dir = path or os.getcwd()
+    target_dir = path or DEFAULT_PROJECT_ROOT
     if "\0" in target_dir:
         raise HTTPException(status_code=400, detail="Null bytes are prohibited in directory paths.")
     try:
@@ -264,8 +274,8 @@ def search_code_intelligence(query: str = Query(..., min_length=1, max_length=20
     global GLOBAL_CODE_INDEX
     if "\0" in query:
         raise HTTPException(status_code=400, detail="Null bytes are prohibited in search query.")
-    target_dir = validate_safe_directory(directory_path) if directory_path else os.getcwd()
-    if not GLOBAL_CODE_INDEX or getattr(GLOBAL_CODE_INDEX, "_root_dir", None) != target_dir:
+    target_dir = validate_safe_directory(directory_path)
+    if not GLOBAL_CODE_INDEX or GLOBAL_CODE_INDEX.get("_root_dir") != target_dir:
         indexer = CodeIndexer(target_dir)
         GLOBAL_CODE_INDEX = indexer.scan_and_index()
         GLOBAL_CODE_INDEX["_root_dir"] = target_dir
@@ -1117,7 +1127,7 @@ GLOBAL_OBSERVABILITY_MGR: Optional[ObservabilityManager] = None
 
 def get_observability_manager(directory_path: Optional[str] = None) -> ObservabilityManager:
     global GLOBAL_OBSERVABILITY_MGR
-    root = validate_safe_directory(directory_path) if directory_path else os.getcwd()
+    root = validate_safe_directory(directory_path)
     if GLOBAL_OBSERVABILITY_MGR is None or GLOBAL_OBSERVABILITY_MGR.root_dir != root:
         GLOBAL_OBSERVABILITY_MGR = ObservabilityManager(root)
     return GLOBAL_OBSERVABILITY_MGR
@@ -1163,7 +1173,7 @@ GLOBAL_EVALUATOR: Optional[SWEEvaluator] = None
 
 def get_evaluator(directory_path: Optional[str] = None) -> SWEEvaluator:
     global GLOBAL_EVALUATOR
-    root = validate_safe_directory(directory_path) if directory_path else os.getcwd()
+    root = validate_safe_directory(directory_path)
     if GLOBAL_EVALUATOR is None or GLOBAL_EVALUATOR.root_dir != root:
         GLOBAL_EVALUATOR = SWEEvaluator(root)
     return GLOBAL_EVALUATOR
@@ -1240,10 +1250,8 @@ async def get_benchmark_report_markdown(directory_path: Optional[str] = None):
     }
 
 
-
-
-
-
-
-
-
+if __name__ == "__main__":
+    import uvicorn
+    # Set PYTHONPATH so reload workers also resolve root packages
+    os.environ["PYTHONPATH"] = f"{PROJECT_ROOT}{os.pathsep}{os.environ.get('PYTHONPATH', '')}".rstrip(os.pathsep)
+    uvicorn.run("apps.api.main:app", host="0.0.0.0", port=8000, reload=True)
