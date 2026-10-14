@@ -3,11 +3,14 @@ from typing import Dict, Any, List, Optional
 from agents.tester.tools import TestingTools
 from agents.tester.prompts import TESTER_SYSTEM_PROMPT, TESTER_RETRY_PROMPT
 from agents.coder.agent import CoderAgent
+from llm.provider import get_llm_provider, LLMMessage
+
 
 class TestingAgent:
     """
     Testing Agent: Validates changes by executing automated tests inside Docker Sandbox.
-    If tests fail, analyzes output and coordinates autonomous retry loops with CoderAgent (up to MAX_ITERATIONS = 3).
+    If tests fail, uses an LLM to produce intelligent failure analysis and coordinates
+    autonomous retry loops with CoderAgent (up to MAX_ITERATIONS = 3).
     """
 
     __test__ = False
@@ -17,10 +20,18 @@ class TestingAgent:
         self.root_dir = os.path.abspath(root_dir)
         self.tools = TestingTools(self.root_dir)
         self.coder = CoderAgent(self.root_dir)
+        self._llm = None  # lazy init
+
+    @property
+    def llm(self):
+        if self._llm is None:
+            self._llm = get_llm_provider()
+        return self._llm
 
     def validate_code(self, test_command: str = "npm test") -> Dict[str, Any]:
         """
-        Executes tests inside Docker sandbox and performs AI failure analysis if any failures occur.
+        Executes tests inside Docker sandbox and performs LLM-powered failure analysis
+        if any failures occur.
         """
         if not test_command or not isinstance(test_command, str):
             test_command = "npm test"
@@ -63,24 +74,62 @@ class TestingAgent:
         failures: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
         """
-        Explains failure and formulates clear, actionable instructions for Coder Agent.
+        Uses LLM to explain test failure and formulate clear, actionable fix instructions.
+        Falls back to heuristic analysis if LLM is unavailable.
         """
         target_file = failures[0].get("file") if failures else "apps/web/src/app/login/page.tsx"
-        
-        root_cause = "Test assertion mismatch or unhandled exception during test suite execution."
-        if "TS" in stderr or "TS" in stdout:
-            root_cause = "TypeScript compilation error: Missing property or type mismatch."
-        elif "Cannot find module" in stderr or "Cannot find module" in stdout:
-            root_cause = "Missing dependency or unresolved module import."
+        failure_names = [f.get("name", "") for f in failures[:5]]
 
-        fix_instructions = (
+        # Build combined output for LLM
+        combined_output = f"STDOUT:\n{stdout[:2000]}\n\nSTDERR:\n{stderr[:2000]}"
+
+        user_prompt = f"""Analyze these test failures and provide a root cause and fix instructions.
+
+Test command: {command}
+Exit code: {exit_code}
+Failing tests: {failure_names}
+Target file: {target_file}
+
+Test output:
+{combined_output}
+
+Respond with:
+1. Root cause (1-2 sentences)
+2. Specific fix instructions (numbered steps)
+3. Files to check
+"""
+
+        llm_root_cause = None
+        llm_fix_instructions = None
+
+        try:
+            response = self.llm.chat(
+                messages=[LLMMessage(role="user", content=user_prompt)],
+                system_prompt=TESTER_SYSTEM_PROMPT,
+                temperature=0.1,
+                max_tokens=1024,
+            )
+            if response.provider != "stub" and "[StubProvider]" not in response.content:
+                llm_root_cause = response.content.strip()[:1000]
+        except Exception:
+            pass
+
+        # Heuristic fallback analysis
+        heuristic_root_cause = "Test assertion mismatch or unhandled exception during test suite execution."
+        if "TS" in stderr or "TS" in stdout:
+            heuristic_root_cause = "TypeScript compilation error: Missing property or type mismatch."
+        elif "Cannot find module" in stderr or "Cannot find module" in stdout:
+            heuristic_root_cause = "Missing dependency or unresolved module import."
+
+        fix_instructions = llm_fix_instructions or (
             f"1. Open {target_file}.\n"
             f"2. Resolve the failing assertion or compile mismatch identified in the test trace.\n"
             f"3. Ensure correct exports and syntax consistency."
         )
 
         return {
-            "root_cause": root_cause,
+            "root_cause": llm_root_cause or heuristic_root_cause,
+            "heuristic_root_cause": heuristic_root_cause,
             "target_file": target_file,
             "failing_tests_count": len(failures) or 1,
             "fix_instructions": fix_instructions,
@@ -88,7 +137,8 @@ class TestingAgent:
                 f"Verify export signatures in {target_file}",
                 "Check mock data in test files",
                 "Re-run test in Docker Sandbox"
-            ]
+            ],
+            "llm_analysis_used": llm_root_cause is not None,
         }
 
     def run_autonomous_loop(self, task_request: str, test_command: str = "npm test") -> Dict[str, Any]:
@@ -122,21 +172,25 @@ class TestingAgent:
                 iterations.append(iteration_record)
                 break
 
-            # Step 2: Explain failure
+            # Step 2: LLM-powered failure analysis
             analysis = test_res.get("analysis", {})
             iteration_record["failure_reason"] = analysis.get("root_cause")
             iteration_record["target_file"] = analysis.get("target_file")
-            
-            # Step 3: Trigger Coder Agent to generate fix
+            iteration_record["llm_analysis_used"] = analysis.get("llm_analysis_used", False)
+
+            # Step 3: Trigger Coder Agent to generate fix using LLM
             coder_fix = self.coder.execute_modification({
                 "task_request": f"Fix test failure: {analysis.get('root_cause')}",
-                "affected_files": [analysis.get("target_file", "apps/web/src/app/login/page.tsx")]
+                "affected_files": [analysis.get("target_file", "apps/web/src/app/login/page.tsx")],
+                "implementation_steps": [analysis.get("fix_instructions", "")]
             })
-            
-            iteration_record["coder_action"] = f"Coder Agent generated fix diff for {len(coder_fix.get('changes', []))} file(s)."
+
+            iteration_record["coder_action"] = (
+                f"Coder Agent generated fix diff for {len(coder_fix.get('changes', []))} file(s). "
+                f"LLM provider: {coder_fix.get('llm_provider', 'unknown')}."
+            )
             iterations.append(iteration_record)
 
-            # If reached max iteration limit, stop
             if current_iter == self.MAX_ITERATIONS:
                 break
 
