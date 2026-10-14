@@ -2,16 +2,26 @@ import os
 from typing import Dict, Any, List, Optional
 from agents.security.tools import SecurityTools
 from agents.security.prompts import SECURITY_SYSTEM_PROMPT
+from llm.provider import get_llm_provider, LLMMessage
+
 
 class SecurityAgent:
     """
     Security Agent: Performs automated static security audits, detects exposed secrets,
-    verifies dependency hygiene, and produces actionable security reports before PR creation.
+    verifies dependency hygiene, and produces LLM-powered actionable security reports
+    before PR creation.
     """
 
     def __init__(self, root_dir: str):
         self.root_dir = os.path.abspath(root_dir)
         self.tools = SecurityTools(self.root_dir)
+        self._llm = None  # lazy init
+
+    @property
+    def llm(self):
+        if self._llm is None:
+            self._llm = get_llm_provider()
+        return self._llm
 
     def scan_changes(self, changes: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
@@ -31,7 +41,7 @@ class SecurityAgent:
                 continue
             new_content = change.get("new_content", "")
             diff = change.get("diff", "")
-            
+
             scanned_files.append(file_path)
             content_to_scan = new_content if new_content else diff
             if content_to_scan and isinstance(content_to_scan, str):
@@ -68,9 +78,12 @@ class SecurityAgent:
 
         return self._build_security_report(raw_findings, scanned_files)
 
-    def _build_security_report(self, raw_findings: List[Dict[str, Any]], scanned_files: List[str]) -> Dict[str, Any]:
+    def _build_security_report(
+        self, raw_findings: List[Dict[str, Any]], scanned_files: List[str]
+    ) -> Dict[str, Any]:
         """
-        Aggregates, deduplicates, and calculates the security health score.
+        Aggregates, deduplicates, calculates the security health score,
+        and enriches findings with LLM explanations.
         """
         # Deduplicate findings by (file, line, rule_id)
         seen = set()
@@ -91,9 +104,13 @@ class SecurityAgent:
         security_score = max(0, 100 - penalty)
 
         passed = critical_count == 0 and high_count == 0
-
         status = "PASSED" if passed else "BLOCKED_BY_POLICY"
         grade = "A" if security_score >= 90 else ("B" if security_score >= 75 else ("C" if security_score >= 60 else "F"))
+
+        # LLM enrichment: generate human-readable explanations for findings
+        llm_report = None
+        if deduped:
+            llm_report = self._generate_llm_report(deduped, security_score, grade)
 
         return {
             "status": status,
@@ -110,11 +127,57 @@ class SecurityAgent:
                 "low": low_count
             },
             "findings": deduped,
+            "llm_security_report": llm_report,
             "approval_gate": {
                 "merge_allowed": passed,
-                "reason": "Clean scan, zero critical/high findings" if passed else "Critical or High severity findings must be resolved prior to merge."
+                "reason": (
+                    "Clean scan, zero critical/high findings"
+                    if passed
+                    else "Critical or High severity findings must be resolved prior to merge."
+                )
             }
         }
+
+    def _generate_llm_report(
+        self, findings: List[Dict[str, Any]], score: int, grade: str
+    ) -> Optional[Dict[str, Any]]:
+        """Uses LLM to generate developer-friendly explanations for security findings."""
+        findings_str = "\n".join([
+            f"- [{f.get('severity', 'UNKNOWN')}] {f.get('rule_id', '?')}: "
+            f"{f.get('message', '')} in {f.get('file', '?')}:{f.get('line', '?')}"
+            for f in findings[:10]
+        ])
+
+        user_prompt = f"""Security scan found these issues (Score: {score}/100, Grade: {grade}):
+
+{findings_str}
+
+For each finding, provide:
+1. A plain-English explanation of why this is a security risk
+2. A specific code fix recommendation
+3. Priority order for remediation
+
+Be concise and developer-focused.
+"""
+
+        try:
+            response = self.llm.chat(
+                messages=[LLMMessage(role="user", content=user_prompt)],
+                system_prompt=SECURITY_SYSTEM_PROMPT,
+                temperature=0.1,
+                max_tokens=2048,
+            )
+            if response.provider != "stub" and "[StubProvider]" not in response.content:
+                return {
+                    "provider": response.provider,
+                    "model": response.model,
+                    "report": response.content.strip(),
+                    "findings_explained": len(findings),
+                }
+        except Exception:
+            pass
+
+        return None
 
     @staticmethod
     def calculate_shannon_entropy(data: str) -> float:
