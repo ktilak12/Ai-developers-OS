@@ -85,7 +85,9 @@ class CodeIndexer:
                 if files_counted >= self.MAX_FILES_LIMIT:
                     break
 
-                if file.endswith((".py", ".ts", ".tsx", ".js", ".jsx")):
+                if file.endswith((".py", ".ts", ".tsx", ".js", ".jsx",
+                               ".go", ".rs", ".java",
+                               ".c", ".cpp", ".cc", ".cxx", ".h", ".hpp")):
                     full_path = os.path.join(root, file)
                     
                     if not self._is_safe_file(full_path, file):
