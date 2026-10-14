@@ -1,0 +1,115 @@
+version: "3.9"
+
+# =============================================================================
+# AI Developer OS — Docker Compose
+# Spins up: PostgreSQL 16 + pgvector, FastAPI backend, Next.js frontend
+#
+# Usage:
+#   1. cp .env.example .env && fill in your keys
+#   2. docker compose up -d db          # just the database
+#   3. docker compose up -d             # everything
+#   4. docker compose logs -f api       # tail API logs
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL 16 + pgvector
+  # ---------------------------------------------------------------------------
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: aideveloperos_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: aideveloperos
+      POSTGRES_USER: aideveloper
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-yourpassword}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Auto-run migration on first start
+      - ./db/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aideveloper -d aideveloperos"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aideveloperosnet
+
+  # ---------------------------------------------------------------------------
+  # FastAPI Backend (Python)
+  # ---------------------------------------------------------------------------
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: aideveloperos_api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://aideveloper:${DB_PASSWORD:-yourpassword}@db:5432/aideveloperos
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - /var/run/docker.sock:/var/run/docker.sock  # for Docker sandbox
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - aideveloperosnet
+
+  # ---------------------------------------------------------------------------
+  # Next.js Frontend
+  # ---------------------------------------------------------------------------
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: aideveloperos_web
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    networks:
+      - aideveloperosnet
+
+  # ---------------------------------------------------------------------------
+  # Execution Sandbox (pre-built image, used by the API on demand)
+  # Build: docker compose build sandbox
+  # ---------------------------------------------------------------------------
+  sandbox:
+    build:
+      context: .
+      dockerfile: sandbox/docker/Dockerfile.sandbox
+    image: ai-developer-os/sandbox:latest
+    container_name: aideveloperos_sandbox_builder
+    # This service is not run continuously — it just builds the image.
+    # The API starts ephemeral sandbox containers via docker run --rm.
+    profiles:
+      - build-only
+    networks:
+      - aideveloperosnet
+
+# ---------------------------------------------------------------------------
+# Volumes & Networks
+# ---------------------------------------------------------------------------
+volumes:
+  pgdata:
+    driver: local
+
+networks:
+  aideveloperosnet:
+    driver: bridge
