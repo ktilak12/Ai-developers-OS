@@ -1,18 +1,68 @@
-# AI Developer OS: Secure Execution Sandbox Container
-# Isolated environment for running npm test, npm run build, pytest, and linters.
+# =============================================================================
+# AI Developer OS — Secure Execution Sandbox Container
+# Hardened multi-language sandbox for: pytest, npm test, go test, cargo test,
+# mvn test, and static security linters.
+# =============================================================================
+
 FROM node:20-bookworm-slim
 
-# Install Python 3, pip, git, and required test runners
+LABEL maintainer="AI Developer OS" \
+      version="2.0" \
+      description="Hardened multi-language execution sandbox"
+
+# ---------------------------------------------------------------------------
+# System packages
+# ---------------------------------------------------------------------------
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
     python3-pip \
     python3-venv \
+    python3-dev \
     git \
     curl \
     ca-certificates \
+    wget \
+    unzip \
+    # Go toolchain
+    golang-go \
+    # Java (OpenJDK 17)
+    openjdk-17-jdk-headless \
+    # C/C++ build tools
+    gcc \
+    g++ \
+    make \
+    cmake \
+    # Rust installer deps
+    build-essential \
+    # Security tools
+    bandit \
     && rm -rf /var/lib/apt/lists/*
 
+# ---------------------------------------------------------------------------
+# Rust (via rustup — non-root install done later)
+# ---------------------------------------------------------------------------
+ENV RUSTUP_HOME=/opt/rustup \
+    CARGO_HOME=/opt/cargo \
+    PATH="/opt/cargo/bin:${PATH}"
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
+    sh -s -- -y --no-modify-path --default-toolchain stable \
+    && /opt/cargo/bin/cargo --version
+
+# ---------------------------------------------------------------------------
+# Global Python tools
+# ---------------------------------------------------------------------------
+RUN pip3 install --no-cache-dir \
+    pytest \
+    pytest-asyncio \
+    bandit \
+    safety \
+    pylint \
+    mypy
+
+# ---------------------------------------------------------------------------
 # Create dedicated unprivileged sandbox user (UID 1001)
+# ---------------------------------------------------------------------------
 RUN groupadd -g 1001 sandboxgroup && \
     useradd -u 1001 -g sandboxgroup -m -s /bin/bash sandboxuser
 
@@ -20,14 +70,28 @@ RUN groupadd -g 1001 sandboxgroup && \
 WORKDIR /workspace
 RUN chown -R sandboxuser:sandboxgroup /workspace
 
+# Give sandbox user access to language runtimes
+RUN chown -R sandboxuser:sandboxgroup /opt/rustup /opt/cargo 2>/dev/null || true
+
+# ---------------------------------------------------------------------------
 # Switch to non-root user
+# ---------------------------------------------------------------------------
 USER sandboxuser
 
-# Environment variables for clean testing
+# ---------------------------------------------------------------------------
+# Environment — clean isolated context, no host secrets
+# ---------------------------------------------------------------------------
 ENV NODE_ENV=test \
     CI=true \
     PYTHONUNBUFFERED=1 \
-    PATH="/home/sandboxuser/.local/bin:${PATH}"
+    JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 \
+    GOPATH=/home/sandboxuser/go \
+    PATH="/home/sandboxuser/.local/bin:/opt/cargo/bin:/usr/local/go/bin:/home/sandboxuser/go/bin:${PATH}"
 
-# Default command
+# ---------------------------------------------------------------------------
+# Resource limit hints (enforced externally via docker run --memory / --cpus)
+# ---------------------------------------------------------------------------
+# Memory: 512m | CPU: 1.0 | PIDs: 256 | No network by default
+
+# Default command — override with specific test commands
 CMD ["bash"]
