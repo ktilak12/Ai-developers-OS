@@ -15,6 +15,7 @@ import httpx
 import re
 import time
 from typing import Optional, List, Dict, Any
+from urllib.parse import quote
 
 from intelligence.indexing.code_indexer import CodeIndexer
 from intelligence.retrieval.symbol_search import SymbolSearchEngine
@@ -134,11 +135,27 @@ class BrowserVerifyRequest(BaseModel):
     steps: Optional[List[Dict[str, Any]]] = None
     directory_path: Optional[str] = None
 
+class CreatePullRequestRequest(BaseModel):
+    owner: str
+    repo: str
+    title: str
+    head: str
+    base: str = "main"
+    body: Optional[str] = ""
+    token: Optional[str] = None
 
+class GitHubOAuthExchangeRequest(BaseModel):
+    code: str
+    client_id: Optional[str] = None
+    client_secret: Optional[str] = None
+    redirect_uri: Optional[str] = None
 
-
-
-
+class CICDGenerateRequest(BaseModel):
+    workflow_type: Optional[str] = "ci"
+    branch: Optional[str] = "main"
+    deploy_target: Optional[str] = "docker"
+    write_to_file: Optional[bool] = False
+    directory_path: Optional[str] = None
 
 GITHUB_IDENTIFIER_REGEX = re.compile(r"^[a-zA-Z0-9_.-]+$")
 
@@ -230,6 +247,91 @@ async def get_repository_contents(owner: str = Query(...), repo: str = Query(...
     validate_github_params(owner, repo, path)
     endpoint = f"repos/{owner}/{repo}/contents/{path}" if path else f"repos/{owner}/{repo}/contents"
     return await make_github_request(endpoint, token)
+
+@app.get("/api/github/oauth/login-url")
+def get_github_oauth_login_url(redirect_uri: Optional[str] = None, scope: Optional[str] = "repo,workflow,user"):
+    client_id = os.getenv("GITHUB_CLIENT_ID", "")
+    if not client_id:
+        raise HTTPException(status_code=400, detail="GITHUB_CLIENT_ID environment variable is not configured.")
+    encoded_scope = quote(scope or "repo,workflow,user")
+    url = f"https://github.com/login/oauth/authorize?client_id={client_id}&scope={encoded_scope}"
+    if redirect_uri:
+        url += f"&redirect_uri={quote(redirect_uri)}"
+    return {"url": url, "client_id": client_id}
+
+@app.post("/api/github/oauth/exchange-token")
+async def exchange_github_oauth_code(req: GitHubOAuthExchangeRequest):
+    client_id = req.client_id or os.getenv("GITHUB_CLIENT_ID", "")
+    client_secret = req.client_secret or os.getenv("GITHUB_CLIENT_SECRET", "")
+    if not client_id or not client_secret:
+        raise HTTPException(status_code=400, detail="GitHub OAuth credentials (client_id / client_secret) not configured.")
+    payload = {
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "code": req.code,
+    }
+    if req.redirect_uri:
+        payload["redirect_uri"] = req.redirect_uri
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        res = await client.post(
+            "https://github.com/login/oauth/access_token",
+            data=payload,
+            headers={"Accept": "application/json"}
+        )
+    if res.status_code != 200:
+        raise HTTPException(status_code=res.status_code, detail="Failed to exchange GitHub OAuth code.")
+    data = res.json()
+    if "error" in data:
+        raise HTTPException(status_code=400, detail=f"GitHub OAuth error: {data.get('error_description', data['error'])}")
+    return {
+        "access_token": data.get("access_token"),
+        "token_type": data.get("token_type"),
+        "scope": data.get("scope")
+    }
+
+@app.post("/api/github/pulls/create")
+async def create_pull_request(req: CreatePullRequestRequest):
+    validate_github_params(req.owner, req.repo)
+    token = req.token or os.getenv("GITHUB_TOKEN")
+    if not token:
+        raise HTTPException(status_code=401, detail="GitHub Token required to create a Pull Request.")
+    clean_owner = req.owner.strip()
+    clean_repo = req.repo.strip()
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "AIDeveloperOS/2.0"
+    }
+    payload = {
+        "title": req.title,
+        "head": req.head,
+        "base": req.base,
+        "body": req.body
+    }
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        res = await client.post(
+            f"{GITHUB_API_BASE}/repos/{clean_owner}/{clean_repo}/pulls",
+            json=payload,
+            headers=headers
+        )
+    if res.status_code not in (200, 201):
+        safe_detail = sanitize_github_error_detail(res.text)
+        raise HTTPException(status_code=res.status_code, detail=f"GitHub PR creation error: {safe_detail}")
+    return res.json()
+
+@app.post("/api/cicd/generate")
+def generate_cicd_workflow(req: CICDGenerateRequest):
+    target_dir = validate_safe_directory(req.directory_path)
+    from cicd.agent import CICDAgent
+    agent = CICDAgent(target_dir)
+    if req.workflow_type == "cd":
+        result = agent.generate_cd_workflow(deploy_target=req.deploy_target or "docker")
+    else:
+        result = agent.generate_ci_workflow(branch=req.branch or "main")
+    if req.write_to_file:
+        write_status = agent.write_workflow_file(result)
+        result["write_status"] = write_status
+    return result
 
 DEFAULT_PROJECT_ROOT = PROJECT_ROOT
 
